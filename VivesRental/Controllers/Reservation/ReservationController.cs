@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using VivesRental.Domains.EntitiesDB;
+using VivesRental.Domains.Enums;
 using VivesRental.Models;
 using VivesRental.Services.Interfaces;
 
@@ -55,7 +56,7 @@ public class ReservationController : Controller
         var article = await _articleService.FindByIdAsync(model.ArticleId);
         if (article != null)
         {
-            article.Status = 2; // Gereserveerd
+            article.Status = ArticleStatus.Gereserveerd;
             await _articleService.UpdateAsync(article);
         }
 

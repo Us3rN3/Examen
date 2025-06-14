@@ -16,4 +16,8 @@ public class OrderCreateDto
     public string CustomerEmail { get; set; } = string.Empty;
 
     public string CustomerPhoneNumber { get; set; } = string.Empty;
+
+    public List<Guid> ProductIds { get; set; } = new(); // Wat gekozen wordt uit UI
+
+    public DateTime ExpiresAt { get; set; }
 }

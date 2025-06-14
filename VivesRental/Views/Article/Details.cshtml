@@ -1,4 +1,5 @@
 ﻿@model VivesRental.Domains.EntitiesDB.Article
+@using VivesRental.Domains.Enums
 
 @{
     ViewData["Title"] = "Artikeldetails";
@@ -24,15 +25,16 @@
 </div>
 
 @functions {
-    string GetStatusName(int status)
+    string GetStatusName(VivesRental.Domains.Enums.ArticleStatus status)
     {
         return status switch
         {
-            0 => "Beschikbaar",
-            1 => "Verhuurd",
-            2 => "Gereserveerd",
-            3 => "Kapot",
+            VivesRental.Domains.Enums.ArticleStatus.Beschikbaar => "Beschikbaar",
+            VivesRental.Domains.Enums.ArticleStatus.Verhuurd => "Verhuurd",
+            VivesRental.Domains.Enums.ArticleStatus.Gereserveerd => "Gereserveerd",
+            VivesRental.Domains.Enums.ArticleStatus.Kapot => "Kapot",
             _ => "Onbekend"
         };
     }
 }
+

@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using VivesRental.Domains.EntitiesDB;
+using VivesRental.Domains.Enums;
 using VivesRental.DTO.Article;
 using VivesRental.Services.Interfaces;
 
@@ -27,7 +28,7 @@ public class ArticleApiController : ControllerBase
         {
             Id = a.Id,
             ProductName = a.Product?.Name ?? "Onbekend",
-            Status = a.Status
+            Status = (int)a.Status
         });
 
         return Ok(dtos);
@@ -44,7 +45,7 @@ public class ArticleApiController : ControllerBase
         {
             Id = article.Id,
             ProductName = article.Product?.Name ?? "Onbekend",
-            Status = article.Status
+            Status = (int)article.Status
         };
 
         return Ok(dto);
@@ -58,7 +59,7 @@ public class ArticleApiController : ControllerBase
         {
             Id = Guid.NewGuid(),
             ProductId = dto.ProductId,
-            Status = dto.Status
+            Status = (ArticleStatus)dto.Status
         };
 
         await _articleService.AddAsync(article);
@@ -73,7 +74,7 @@ public class ArticleApiController : ControllerBase
         var article = await _articleService.FindByIdAsync(id);
         if (article == null) return NotFound();
 
-        article.Status = dto.Status;
+        article.Status = (ArticleStatus)dto.Status;
 
         await _articleService.UpdateAsync(article);
 

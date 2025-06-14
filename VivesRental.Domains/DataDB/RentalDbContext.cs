@@ -36,6 +36,8 @@ public partial class RentalDbContext : DbContext
     {
         modelBuilder.Entity<Article>(entity =>
         {
+            entity.Property(e => e.Status).HasConversion<int>();
+
             entity.HasKey(e => e.Id).HasName("PK__Article__3214EC0792A00C7D");
 
             entity.ToTable("Article");

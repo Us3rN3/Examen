@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using VivesRental.Domains.EntitiesDB;
 using VivesRental.Repositories.Interfaces;
 using VivesRental.Services.Interfaces;
+using VivesRental.Domains.Enums;
 
 namespace VivesRental.Services
 {
@@ -86,5 +87,13 @@ namespace VivesRental.Services
                 throw;
             }
         }
+        public async Task<Article?> FindFirstAvailableByProductIdAsync(Guid productId)
+        {
+            var allArticles = await _articleDAO.GetAllAsync();
+            return allArticles?
+                .Where(a => a.ProductId == productId && a.Status == ArticleStatus.Beschikbaar)
+                .FirstOrDefault();
+        }
+
     }
 }

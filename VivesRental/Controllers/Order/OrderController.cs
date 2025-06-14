@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using VivesRental.Domains.EntitiesDB;
+using VivesRental.Domains.Enums;
 using VivesRental.Models;
 using VivesRental.Services;
 using VivesRental.Services.Interfaces;
@@ -126,7 +127,7 @@ public class OrderController : Controller
         };
 
         // Artikelstatus wijzigen naar "verhuurd"
-        availableArticle.Status = 1;
+        availableArticle.Status = ArticleStatus.Verhuurd;
 
         // Opslaan
         await _orderLineService.AddAsync(orderLine);

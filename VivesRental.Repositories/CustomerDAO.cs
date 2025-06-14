@@ -22,6 +22,10 @@ namespace VivesRental.Repositories
         {
             try
             {
+                if (entity.Id == Guid.Empty)
+                {
+                    entity.Id = Guid.NewGuid();
+                }
                 await _context.Customers.AddAsync(entity);
                 await _context.SaveChangesAsync();
             }

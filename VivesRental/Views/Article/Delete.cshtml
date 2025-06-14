@@ -1,4 +1,5 @@
 ﻿@model VivesRental.Domains.EntitiesDB.Article
+@using VivesRental.Domains.Enums
 
 @{
     ViewData["Title"] = "Artikel verwijderen";
@@ -26,14 +27,14 @@
 </form>
 
 @functions {
-    string GetStatusName(int status)
+    string GetStatusName(ArticleStatus status)
     {
         return status switch
         {
-            0 => "Beschikbaar",
-            1 => "Verhuurd",
-            2 => "Gereserveerd",
-            3 => "Kapot",
+            ArticleStatus.Beschikbaar => "Beschikbaar",
+            ArticleStatus.Verhuurd => "Verhuurd",
+            ArticleStatus.Gereserveerd => "Gereserveerd",
+            ArticleStatus.Kapot => "Kapot",
             _ => "Onbekend"
         };
     }

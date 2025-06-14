@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using VivesRental.Domains.Enums;
 namespace VivesRental.Domains.EntitiesDB;
 
 public partial class Article
@@ -8,7 +9,7 @@ public partial class Article
 
     public Guid ProductId { get; set; }
 
-    public int Status { get; set; }
+    public ArticleStatus Status { get; set; }
 
     public virtual ICollection<ArticleReservation> ArticleReservations { get; set; } = new List<ArticleReservation>();
 
