@@ -1,0 +1,34 @@
+﻿@model IEnumerable<VivesRental.Models.ProductWithAvailabilityViewModel>
+
+@{
+    ViewData["Title"] = "Producten selecteren";
+    var orderId = ViewBag.OrderId;
+}
+
+<h1>Selecteer Producten</h1>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Product</th>
+            <th>Beschikbaar</th>
+            <th>Actie</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var product in Model)
+        {
+            <tr>
+                <td>@product.ProductName</td>
+                <td>@product.AvailableCount</td>
+                <td>
+                    <form asp-action="AddToOrder" method="post">
+                        <input type="hidden" name="orderId" value="@orderId" />
+                        <input type="hidden" name="productId" value="@product.ProductId" />
+                        <button type="submit" class="btn btn-primary">Voeg toe aan order</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

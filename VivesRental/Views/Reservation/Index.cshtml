@@ -1,0 +1,45 @@
+﻿@model IEnumerable<VivesRental.Domains.EntitiesDB.ArticleReservation>
+
+@{
+    ViewData["Title"] = "Reserveringsoverzicht";
+}
+
+<h1>Reserveringen</h1>
+
+<form method="get" class="mb-3">
+    <div class="input-group">
+        <input type="text" name="search" class="form-control" placeholder="Zoek op klantnaam..." value="@Context.Request.Query["search"]" />
+        <button type="submit" class="btn btn-outline-primary">Zoek</button>
+    </div>
+</form>
+
+@if (!Model.Any())
+{
+    <p><em>Geen reserveringen gevonden.</em></p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Klant</th>
+                <th>Product</th>
+                <th>Artikel ID</th>
+                <th>Van</th>
+                <th>Tot</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var r in Model)
+            {
+                <tr>
+                    <td>@r.Customer.FirstName @r.Customer.LastName</td>
+                    <td>@r.Article.Product?.Name</td>
+                    <td>@r.Article.Id.ToString().Substring(0, 6)...</td>
+                    <td>@r.FromDateTime.ToShortDateString()</td>
+                    <td>@r.UntilDateTime.ToShortDateString()</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

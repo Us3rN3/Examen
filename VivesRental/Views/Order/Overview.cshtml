@@ -1,0 +1,46 @@
+﻿@{
+    ViewData["Title"] = "Bestellingsoverzicht per klant";
+    var groupedOrders = ViewBag.GroupedOrders as IEnumerable<IGrouping<dynamic, VivesRental.Domains.EntitiesDB.Order>>;
+}
+
+<h1>Overzicht van bestellingen per klant</h1>
+
+@if (TempData["Info"] != null)
+{
+    <div class="alert alert-info">@TempData["Info"]</div>
+}
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Klant</th>
+            <th>Email</th>
+            <th>Bestellingen</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var group in groupedOrders!)
+        {
+            <tr>
+                <td>@group.Key.CustomerFirstName @group.Key.CustomerLastName</td>
+                <td>@group.Key.CustomerEmail</td>
+                <td>
+                    <ul>
+                        @foreach (var order in group)
+                        {
+                            <li>
+                                <strong>@order.CreatedAt.ToShortDateString()</strong> –
+                                @order.Id<br />
+                                <a asp-action="Details" asp-route-id="@order.Id" class="btn btn-primary btn-sm">Details</a>
+                                <form asp-action="ReturnAll" method="post" style="display:inline">
+                                    <input type="hidden" name="orderId" value="@order.Id" />
+                                    <button type="submit" class="btn btn-warning btn-sm">Alles terugbrengen</button>
+                                </form>
+                            </li>
+                        }
+                    </ul>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

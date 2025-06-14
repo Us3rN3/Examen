@@ -1,0 +1,40 @@
+﻿@model VivesRental.Domains.EntitiesDB.Article
+
+@{
+    ViewData["Title"] = "Artikel verwijderen";
+}
+
+<h1>Artikel verwijderen</h1>
+
+<h4>Ben je zeker dat je dit artikel wilt verwijderen?</h4>
+<hr />
+<dl class="row">
+    <dt class="col-sm-3">Product</dt>
+    <dd class="col-sm-9">@Model.Product?.Name</dd>
+
+    <dt class="col-sm-3">Status</dt>
+    <dd class="col-sm-9">@GetStatusName(Model.Status)</dd>
+
+    <dt class="col-sm-3">Artikel ID</dt>
+    <dd class="col-sm-9">@Model.Id</dd>
+</dl>
+
+<form asp-action="Delete" method="post">
+    <input type="hidden" asp-for="Id" />
+    <button type="submit" class="btn btn-danger">Verwijder</button>
+    <a asp-action="Index" class="btn btn-secondary">Annuleren</a>
+</form>
+
+@functions {
+    string GetStatusName(int status)
+    {
+        return status switch
+        {
+            0 => "Beschikbaar",
+            1 => "Verhuurd",
+            2 => "Gereserveerd",
+            3 => "Kapot",
+            _ => "Onbekend"
+        };
+    }
+}

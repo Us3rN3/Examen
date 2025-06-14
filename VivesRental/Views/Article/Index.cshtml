@@ -1,0 +1,50 @@
+﻿@using VivesRental.Domains.EntitiesDB
+@model IEnumerable<Article>
+
+@{
+    ViewData["Title"] = "Artikelen";
+}
+
+<h1>Artikelen</h1>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Nieuw Artikel</a>
+</p>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Product</th>
+            <th>Status</th>
+            <th>Acties</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var article in Model)
+        {
+            <tr>
+                <td>@article.Product?.Name</td>
+                <td>@GetStatusName(article.Status)</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@article.Id">Bewerk</a> |
+                    <a asp-action="Details" asp-route-id="@article.Id">Details</a> |
+                    <a asp-action="Delete" asp-route-id="@article.Id">Verwijder</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@functions {
+    string GetStatusName(int status)
+    {
+        return status switch
+        {
+            0 => "Beschikbaar",
+            1 => "Verhuurd",
+            2 => "Gereserveerd",
+            3 => "Kapot",
+            _ => "Onbekend"
+        };
+    }
+}

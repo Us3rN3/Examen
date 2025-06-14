@@ -1,0 +1,26 @@
+﻿@using VivesRental.Domains.EntitiesDB
+@model Product
+
+@{
+    ViewData["Title"] = "Productdetails";
+}
+
+<h1>Productdetails</h1>
+
+<div>
+    <h4>Product</h4>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-2">Naam</dt>
+        <dd class="col-sm-10">@Model.Name</dd>
+
+        <dt class="col-sm-2">Beschrijving</dt>
+        <dd class="col-sm-10">@Model.Description</dd>
+    </dl>
+</div>
+
+<div>
+    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Bewerk</a>
+    <a asp-action="Index" class="btn btn-secondary">Terug naar overzicht</a>
+</div>
+

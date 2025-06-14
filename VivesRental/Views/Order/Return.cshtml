@@ -1,0 +1,55 @@
+﻿@model IEnumerable<VivesRental.Domains.EntitiesDB.OrderLine>
+
+@{
+    var order = ViewBag.Order as VivesRental.Domains.EntitiesDB.Order;
+    ViewData["Title"] = "Artikelen terugbrengen";
+}
+
+<h1>Terugbrengen - Order van @order?.CustomerFirstName @order?.CustomerLastName</h1>
+
+<p>Order ID: @order?.Id</p>
+<p>Gemaakt op: @order?.CreatedAt.ToShortDateString()</p>
+
+@if (!Model.Any())
+{
+    <p><em>Er zijn geen artikels gekoppeld aan dit order.</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Product</th>
+                <th>Verhuurd op</th>
+                <th>Vervaldatum</th>
+                <th>Teruggebracht</th>
+                <th>Actie</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var line in Model)
+            {
+                <tr>
+                    <td>@line.ProductName</td>
+                    <td>@line.RentedAt.ToShortDateString()</td>
+                    <td>@line.ExpiresAt.ToShortDateString()</td>
+                    <td>@(line.ReturnedAt.HasValue? line.ReturnedAt.Value.ToShortDateString() : "-")</td>
+                    <td>
+                        @if (!line.ReturnedAt.HasValue)
+                        {
+                            <form asp-action="ReturnArticle" method="post">
+                                <input type="hidden" name="orderLineId" value="@line.Id" />
+                                <input type="hidden" name="orderId" value="@order?.Id" />
+                                <button type="submit" class="btn btn-success btn-sm">Breng terug</button>
+                            </form>
+                        }
+                        else
+                        {
+                            <span class="text-muted">Reeds terug</span>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

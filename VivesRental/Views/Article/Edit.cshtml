@@ -1,0 +1,40 @@
+﻿@model VivesRental.Domains.EntitiesDB.Article
+
+@{
+    ViewData["Title"] = "Artikel bewerken";
+}
+
+<h1>Artikel bewerken</h1>
+
+@* Toon algemene validatiefouten *@
+@Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+<form asp-action="Edit" method="post">
+    <input type="hidden" asp-for="Id" />
+    <input type="hidden" asp-for="ProductId" />
+
+    <div class="form-group">
+        <label class="control-label">Product</label>
+        <input class="form-control" value="@Model.Product?.Name" readonly />
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Status" class="control-label">Status</label>
+        <select asp-for="Status" class="form-control">
+            <option value="0" selected="@(Model.Status == 0)">Beschikbaar</option>
+            <option value="1" selected="@(Model.Status == 1)">Verhuurd</option>
+            <option value="2" selected="@(Model.Status == 2)">Gereserveerd</option>
+            <option value="3" selected="@(Model.Status == 3)">Kapot</option>
+        </select>
+        <span asp-validation-for="Status" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Opslaan</button>
+    <a asp-action="Index" class="btn btn-secondary">Annuleren</a>
+</form>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

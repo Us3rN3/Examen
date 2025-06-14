@@ -1,0 +1,37 @@
+﻿@model IEnumerable<VivesRental.Domains.EntitiesDB.Customer>
+
+@{
+    ViewData["Title"] = "Klanten";
+}
+
+<h1>Klanten</h1>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Nieuwe Klant</a>
+</p>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Voornaam</th>
+            <th>Achternaam</th>
+            <th>Email</th>
+            <th>Acties</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var customer in Model)
+        {
+            <tr>
+                <td>@customer.FirstName</td>
+                <td>@customer.LastName</td>
+                <td>@customer.Email</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@customer.Id">Bewerk</a> |
+                    <a asp-action="Details" asp-route-id="@customer.Id">Details</a> |
+                    <a asp-action="Delete" asp-route-id="@customer.Id">Verwijder</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

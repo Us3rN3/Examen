@@ -1,0 +1,16 @@
+﻿@{
+    ViewData["Title"] = "Order terugbrengen";
+}
+
+<h1>Zoek een order om terug te brengen</h1>
+
+<form asp-controller="Order" asp-action="Details" method="get">
+    <div class="form-group">
+        <label for="id">Ordernummer</label>
+        <input type="text" class="form-control" id="id" name="id" placeholder="Plak of typ het ordernummer in">
+    </div>
+    <button type="submit" class="btn btn-primary mt-2">Ga naar orderdetails</button>
+</form>
+
+
+

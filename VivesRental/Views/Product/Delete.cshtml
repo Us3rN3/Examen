@@ -1,0 +1,25 @@
+﻿@using VivesRental.Domains.EntitiesDB
+@model Product
+
+@{
+    ViewData["Title"] = "Product verwijderen";
+}
+
+<h1>Product verwijderen</h1>
+
+<h4>Ben je zeker dat je dit product wilt verwijderen?</h4>
+<hr />
+<dl class="row">
+    <dt class="col-sm-2">Naam</dt>
+    <dd class="col-sm-10">@Model.Name</dd>
+
+    <dt class="col-sm-2">Beschrijving</dt>
+    <dd class="col-sm-10">@Model.Description</dd>
+</dl>
+
+<form asp-action="Delete" method="post">
+    <input type="hidden" asp-for="Id" />
+    <button type="submit" class="btn btn-danger">Verwijderen</button>
+    <a asp-action="Index" class="btn btn-secondary">Annuleer</a>
+</form>
+
