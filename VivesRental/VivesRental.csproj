@@ -23,4 +23,9 @@
 		<ProjectReference Include="..\VivesRental.Services\VivesRental.Services.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Folder Include="DTO\Customer\" />
+	  <Folder Include="DTO\Order\" />
+	</ItemGroup>
+
 </Project>
