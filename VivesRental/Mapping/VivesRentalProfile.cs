@@ -2,6 +2,7 @@
 using VivesRental.Domains.EntitiesDB;
 using VivesRental.Domains.Enums;
 using VivesRental.DTO.Article;
+using VivesRental.DTO.Customer;
 
 namespace VivesRental.Mapping;
 
@@ -23,6 +24,12 @@ public class VivesRentalProfile : Profile
 
         CreateMap<ArticleBulkCreateDto, Article>()
             .ForMember(dest => dest.Status, opt => opt.MapFrom(src => (ArticleStatus)src.Status));
+
+        CreateMap<Customer, CustomerDto>();
+
+        CreateMap<CustomerCreateDto, Customer>();
+
+        CreateMap<CustomerUpdateDto, Customer>();
 
     }
 }

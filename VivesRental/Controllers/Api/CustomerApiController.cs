@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
 using VivesRental.Domains.EntitiesDB;
 using VivesRental.DTO.Customer;
 using VivesRental.Services.Interfaces;
@@ -8,11 +9,14 @@ using VivesRental.Services.Interfaces;
 public class CustomerApiController : ControllerBase
 {
     private readonly IService<Customer> _customerService;
+    private readonly IMapper _mapper;
 
-    public CustomerApiController(IService<Customer> customerService)
+    public CustomerApiController(IService<Customer> customerService, IMapper mapper)
     {
         _customerService = customerService;
+        _mapper = mapper;
     }
+
 
     [HttpGet]
     public async Task<ActionResult<IEnumerable<CustomerDto>>> GetAll()
@@ -21,17 +25,10 @@ public class CustomerApiController : ControllerBase
         if (customers == null)
             return NotFound();
 
-        var dtos = customers.Select(c => new CustomerDto
-        {
-            Id = c.Id,
-            FirstName = c.FirstName,
-            LastName = c.LastName,
-            Email = c.Email,
-            PhoneNumber = c.PhoneNumber
-        });
-
+        var dtos = _mapper.Map<IEnumerable<CustomerDto>>(customers);
         return Ok(dtos);
     }
+
 
     [HttpGet("{id}")]
     public async Task<ActionResult<CustomerDto>> GetById(Guid id)
@@ -40,33 +37,21 @@ public class CustomerApiController : ControllerBase
         if (customer == null)
             return NotFound();
 
-        var dto = new CustomerDto
-        {
-            Id = customer.Id,
-            FirstName = customer.FirstName,
-            LastName = customer.LastName,
-            Email = customer.Email,
-            PhoneNumber = customer.PhoneNumber
-        };
-
+        var dto = _mapper.Map<CustomerDto>(customer);
         return Ok(dto);
     }
+
 
     [HttpPost]
     public async Task<ActionResult> Create(CustomerCreateDto dto)
     {
-        var customer = new Customer
-        {
-            Id = Guid.NewGuid(),
-            FirstName = dto.FirstName,
-            LastName = dto.LastName,
-            Email = dto.Email,
-            PhoneNumber = dto.PhoneNumber
-        };
+        var customer = _mapper.Map<Customer>(dto);
+        customer.Id = Guid.NewGuid();
 
         await _customerService.AddAsync(customer);
         return CreatedAtAction(nameof(GetById), new { id = customer.Id }, null);
     }
+
 
     [HttpPut("{id}")]
     public async Task<ActionResult> Update(Guid id, CustomerUpdateDto dto)
@@ -75,14 +60,12 @@ public class CustomerApiController : ControllerBase
         if (customer == null)
             return NotFound();
 
-        customer.FirstName = dto.FirstName;
-        customer.LastName = dto.LastName;
-        customer.Email = dto.Email;
-        customer.PhoneNumber = dto.PhoneNumber;
+        _mapper.Map(dto, customer); // updates op bestaand object
 
         await _customerService.UpdateAsync(customer);
         return NoContent();
     }
+
 
     [HttpDelete("{id}")]
     public async Task<ActionResult> Delete(Guid id)
