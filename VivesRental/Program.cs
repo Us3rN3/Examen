@@ -44,6 +44,9 @@ builder.Services.AddTransient<IDAO<OrderLine>, OrderLineDAO>();
 builder.Services.AddControllers(); // Voor web API controllers
 builder.Services.AddControllersWithViews(); // Voor MVC controllers en views
 
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -75,5 +78,11 @@ app.MapControllerRoute(
 
 app.MapRazorPages()
    .WithStaticAssets();
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
 app.Run();
