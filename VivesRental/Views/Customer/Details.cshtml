@@ -4,9 +4,10 @@
     ViewData["Title"] = "Klantdetails";
 }
 
-<h1>Klantdetails</h1>
+<h1 class="mb-4">Klantdetails</h1>
 
 <hr />
+
 <dl class="row">
     <dt class="col-sm-3">Voornaam</dt>
     <dd class="col-sm-9">@Model.FirstName</dd>
@@ -16,9 +17,14 @@
 
     <dt class="col-sm-3">Email</dt>
     <dd class="col-sm-9">@Model.Email</dd>
+
+    <dt class="col-sm-3">Telefoonnummer</dt>
+    <dd class="col-sm-9">@Model.PhoneNumber ?? "<em>Niet opgegeven</em>"</dd>
 </dl>
 
-<div>
-    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Bewerk</a>
+<div class="mt-4">
+    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary me-2">
+        <i class="bi bi-pencil"></i> Bewerk
+    </a>
     <a asp-action="Index" class="btn btn-secondary">Terug naar overzicht</a>
 </div>

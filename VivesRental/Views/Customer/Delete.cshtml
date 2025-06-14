@@ -4,10 +4,14 @@
     ViewData["Title"] = "Klant verwijderen";
 }
 
-<h1>Klant verwijderen</h1>
+<h1 class="mb-4 text-danger">Klant verwijderen</h1>
 
-<h4>Ben je zeker dat je deze klant wilt verwijderen?</h4>
+<div class="alert alert-warning" role="alert">
+    Ben je zeker dat je deze klant wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.
+</div>
+
 <hr />
+
 <dl class="row">
     <dt class="col-sm-3">Voornaam</dt>
     <dd class="col-sm-9">@Model.FirstName</dd>
@@ -17,10 +21,15 @@
 
     <dt class="col-sm-3">Email</dt>
     <dd class="col-sm-9">@Model.Email</dd>
+
+    <dt class="col-sm-3">Telefoonnummer</dt>
+    <dd class="col-sm-9">@Model.PhoneNumber ?? "<em>Niet opgegeven</em>"</dd>
 </dl>
 
-<form asp-action="Delete" method="post">
+<form asp-action="Delete" method="post" class="mt-3">
     <input type="hidden" asp-for="Id" />
-    <button type="submit" class="btn btn-danger">Verwijder</button>
+    <button type="submit" class="btn btn-danger me-2">
+        <i class="bi bi-trash"></i> Verwijder
+    </button>
     <a asp-action="Index" class="btn btn-secondary">Annuleer</a>
 </form>

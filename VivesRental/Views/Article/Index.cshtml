@@ -33,15 +33,15 @@
                     </span>
                 </td>
                 <td class="text-center">
-                    <a asp-action="Edit" asp-route-id="@article.Id" class="btn btn-sm btn-primary me-1" title="Bewerk">
+                    <a asp-action="Edit" asp-route-id="@article.Id" class="btn btn-sm btn-outline-primary me-1 title="Bewerk">
                         <i class="bi bi-pencil"></i>
                         Bewerk
                     </a>
-                    <a asp-action="Details" asp-route-id="@article.Id" class="btn btn-sm btn-info me-1" title="Details">
+                    <a asp-action="Details" asp-route-id="@article.Id" class="btn btn-sm btn-outline-info me-1" title="Details">
                         <i class="bi bi-eye"></i>
                         Details
                     </a>
-                    <a asp-action="Delete" asp-route-id="@article.Id" class="btn btn-sm btn-danger" title="Verwijder" onclick="return confirm('Weet je zeker dat je dit artikel wilt verwijderen?');">
+                    <a asp-action="Delete" asp-route-id="@article.Id" class="btn btn-sm btn-outline-danger" title="Verwijder" onclick="return confirm('Weet je zeker dat je dit artikel wilt verwijderen?');">
                         <i class="bi bi-trash"></i>
                         Verwijder
                     </a>
