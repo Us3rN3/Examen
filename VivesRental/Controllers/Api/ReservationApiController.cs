@@ -47,6 +47,19 @@ namespace VivesRental.Controllers.Api
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
+            var reservations = await _reservationService.GetAllAsync();
+            if (reservations == null)
+                return StatusCode(500, "Fout bij ophalen van reservaties.");
+
+            bool overlaps = reservations.Any(r =>
+                r.ArticleId == createDto.ArticleId &&
+                r.UntilDateTime > createDto.FromDateTime &&
+                r.FromDateTime < createDto.UntilDateTime
+            );
+
+            if (overlaps)
+                return BadRequest("Dit artikel is al gereserveerd binnen deze periode.");
+
             var reservation = _mapper.Map<ArticleReservation>(createDto);
             reservation.Id = Guid.NewGuid();
 
@@ -65,12 +78,28 @@ namespace VivesRental.Controllers.Api
             if (existingReservation == null)
                 return NotFound();
 
+            var reservations = await _reservationService.GetAllAsync();
+            if (reservations == null)
+                return StatusCode(500, "Fout bij ophalen van reservaties.");
+
+            // Enkel overlappingen op hetzelfde artikel
+            bool overlaps = reservations.Any(r =>
+                r.Id != id &&
+                r.ArticleId == existingReservation.ArticleId &&
+                r.UntilDateTime > updateDto.FromDateTime &&
+                r.FromDateTime < updateDto.UntilDateTime
+            );
+
+            if (overlaps)
+                return BadRequest("Dit artikel is al gereserveerd binnen deze periode.");
+
             _mapper.Map(updateDto, existingReservation);
 
             await _reservationService.UpdateAsync(existingReservation);
 
             return NoContent();
         }
+
 
         [HttpDelete("{id}")]
         public async Task<ActionResult> Delete(Guid id)
@@ -82,6 +111,25 @@ namespace VivesRental.Controllers.Api
             await _reservationService.DeleteAsync(existingReservation);
 
             return NoContent();
+        }
+
+        // 🔍 Filter op klant en/of datum
+        [HttpGet("search")]
+        public async Task<IActionResult> SearchReservations([FromQuery] Guid? customerId, [FromQuery] DateTime? from, [FromQuery] DateTime? until)
+        {
+            var reservations = await _reservationService.GetAllAsync();
+            if (reservations == null)
+                return NotFound();
+
+            var filtered = reservations
+                .Where(r =>
+                    (!customerId.HasValue || r.CustomerId == customerId) &&
+                    (!from.HasValue || r.UntilDateTime >= from) &&
+                    (!until.HasValue || r.FromDateTime <= until)
+                );
+
+            var dtos = _mapper.Map<IEnumerable<ArticleReservationDto>>(filtered);
+            return Ok(dtos);
         }
     }
 }

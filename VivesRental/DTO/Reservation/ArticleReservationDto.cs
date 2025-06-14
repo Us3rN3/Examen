@@ -8,8 +8,10 @@
         public DateTime FromDateTime { get; set; }
         public DateTime UntilDateTime { get; set; }
 
-        // Optioneel: naam van artikel en klant als read-only info (voor response)
         public string? ArticleName { get; set; }
-        public string? CustomerName { get; set; }
+
+        // Gebruik volledige naam i.p.v. alleen voornaam
+        public string? CustomerFullName { get; set; }
     }
+
 }
