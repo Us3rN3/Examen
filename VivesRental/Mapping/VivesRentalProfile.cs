@@ -5,6 +5,7 @@ using VivesRental.DTO.Article;
 using VivesRental.DTO.Customer;
 using VivesRental.DTO.Order;
 using VivesRental.DTO.Product;
+using VivesRental.DTO.Reservation;
 using VivesRental.Repositories;
 
 namespace VivesRental.Mapping;
@@ -49,5 +50,13 @@ public class VivesRentalProfile : Profile
 
         CreateMap<ProductUpdateDto, Product>()
             .ForMember(dest => dest.Id, opt => opt.Ignore()); // Id mag niet overschreven worden
+
+        CreateMap<ArticleReservation, ArticleReservationDto>()
+            .ForMember(dest => dest.ArticleName, opt => opt.MapFrom(src => src.Article.Product))
+            .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src => src.Customer.FirstName));
+
+        CreateMap<ArticleReservationCreateDto, ArticleReservation>();
+
+        CreateMap<ArticleReservationUpdateDto, ArticleReservation>();
     }
 }
