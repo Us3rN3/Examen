@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using VivesRental.Domains.EntitiesDB;
+using VivesRental.Models;
 using VivesRental.Services.Interfaces;
 
 namespace VivesRental.Controllers.Api;
@@ -16,9 +17,19 @@ public class ArticleApiController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Article>>> GetAll()
+    public async Task<ActionResult<IEnumerable<ArticleDto>>> GetAll()
     {
         var articles = await _articleService.GetAllAsync();
-        return Ok(articles);
+        if (articles == null)
+            return NotFound();
+
+        var dtos = articles.Select(a => new ArticleDto
+        {
+            Id = a.Id,
+            ProductName = a.Product?.Name ?? "Onbekend",
+            Status = a.Status
+        });
+
+        return Ok(dtos);
     }
 }

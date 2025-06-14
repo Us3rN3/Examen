@@ -22,4 +22,12 @@ public class OrderApiController : ControllerBase
 
         return Ok(order);
     }
+
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<Order>>> GetAll()
+    {
+        var orders = await _orderService.GetAllAsync();
+        return Ok(orders);
+    }
+
 }

@@ -67,8 +67,8 @@ namespace VivesRental.Repositories
             try
             {
                 return await _context.Articles
-                .Include(a => a.Product) // <-- Belangrijk voor weergave in view
-                .ToListAsync();
+                    .Include(a => a.Product) // Include Product voor details in de views
+                    .ToListAsync();
             }
             catch (Exception ex)
             {
