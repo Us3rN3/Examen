@@ -4,6 +4,7 @@ using VivesRental.Domains.Enums;
 using VivesRental.DTO.Article;
 using VivesRental.DTO.Customer;
 using VivesRental.DTO.Order;
+using VivesRental.DTO.Product;
 using VivesRental.Repositories;
 
 namespace VivesRental.Mapping;
@@ -39,8 +40,14 @@ public class VivesRentalProfile : Profile
 
         CreateMap<OrderLine, OrderLineDto>();
 
-        // Als je OrderLineCreateDto wil mappen (optioneel)
         CreateMap<OrderLineCreateDto, OrderLine>();
 
+        CreateMap<Product, ProductDto>();
+
+        CreateMap<ProductCreateDto, Product>()
+            .ForMember(dest => dest.Id, opt => opt.Ignore()); // Id wordt in controller gegenereerd
+
+        CreateMap<ProductUpdateDto, Product>()
+            .ForMember(dest => dest.Id, opt => opt.Ignore()); // Id mag niet overschreven worden
     }
 }

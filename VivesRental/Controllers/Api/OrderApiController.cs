@@ -11,10 +11,10 @@ using VivesRental.Services.Interfaces;
 public class OrderApiController : ControllerBase
 {
     private readonly IService<Order> _orderService;
-    private readonly ArticleService _articleService;
+    private readonly IService<Article> _articleService;
     private readonly IMapper _mapper;
 
-    public OrderApiController(IService<Order> orderService, ArticleService articleService, IMapper mapper)
+    public OrderApiController(IService<Order> orderService, IService<Article> articleService, IMapper mapper)
     {
         _orderService = orderService;
         _articleService = articleService;
@@ -52,7 +52,7 @@ public class OrderApiController : ControllerBase
         foreach (var productId in dto.ProductIds)
         {
             // TODO: hier moet je een methode hebben die het eerste beschikbare artikel van een product vindt
-            var article = await _articleService.FindFirstAvailableByProductIdAsync(productId);
+            var article = await ((ArticleService)_articleService).FindFirstAvailableByProductIdAsync(productId);
             if (article == null)
                 return BadRequest($"Geen beschikbaar artikel gevonden voor product {productId}");
 

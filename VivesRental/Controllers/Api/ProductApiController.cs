@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
 using VivesRental.Domains.EntitiesDB;
 using VivesRental.DTO.Product;
 using VivesRental.Services.Interfaces;
@@ -10,29 +11,22 @@ namespace VivesRental.Controllers.Api;
 public class ProductApiController : ControllerBase
 {
     private readonly IService<Product> _productService;
+    private readonly IMapper _mapper;
 
-    public ProductApiController(IService<Product> productService)
+    public ProductApiController(IService<Product> productService, IMapper mapper)
     {
         _productService = productService;
+        _mapper = mapper;
     }
 
     [HttpGet]
     public async Task<ActionResult<IEnumerable<ProductDto>>> GetAll()
     {
         var products = await _productService.GetAllAsync();
-        if (products == null)
+        if (products == null || !products.Any())
             return NotFound();
 
-        var dtos = products.Select(p => new ProductDto
-        {
-            Id = p.Id,
-            Name = p.Name,
-            Description = p.Description,
-            Manufacturer = p.Manufacturer,
-            Publisher = p.Publisher,
-            RentalExpiresAfterDays = p.RentalExpiresAfterDays
-        });
-
+        var dtos = _mapper.Map<IEnumerable<ProductDto>>(products);
         return Ok(dtos);
     }
 
@@ -43,48 +37,36 @@ public class ProductApiController : ControllerBase
         if (product == null)
             return NotFound();
 
-        var dto = new ProductDto
-        {
-            Id = product.Id,
-            Name = product.Name,
-            Description = product.Description,
-            Manufacturer = product.Manufacturer,
-            Publisher = product.Publisher,
-            RentalExpiresAfterDays = product.RentalExpiresAfterDays
-        };
-
+        var dto = _mapper.Map<ProductDto>(product);
         return Ok(dto);
     }
 
     [HttpPost]
-    public async Task<ActionResult> Create(ProductCreateDto dto)
+    public async Task<ActionResult<ProductDto>> Create([FromBody] ProductCreateDto dto)
     {
-        var product = new Product
-        {
-            Id = Guid.NewGuid(),
-            Name = dto.Name,
-            Description = dto.Description,
-            Manufacturer = dto.Manufacturer,
-            Publisher = dto.Publisher,
-            RentalExpiresAfterDays = dto.RentalExpiresAfterDays
-        };
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        var product = _mapper.Map<Product>(dto);
+        product.Id = Guid.NewGuid();
 
         await _productService.AddAsync(product);
-        return CreatedAtAction(nameof(GetById), new { id = product.Id }, null);
+
+        var createdDto = _mapper.Map<ProductDto>(product);
+        return CreatedAtAction(nameof(GetById), new { id = product.Id }, createdDto);
     }
 
     [HttpPut("{id}")]
-    public async Task<ActionResult> Update(Guid id, ProductUpdateDto dto)
+    public async Task<ActionResult> Update(Guid id, [FromBody] ProductUpdateDto dto)
     {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
         var product = await _productService.FindByIdAsync(id);
         if (product == null)
             return NotFound();
 
-        product.Name = dto.Name;
-        product.Description = dto.Description;
-        product.Manufacturer = dto.Manufacturer;
-        product.Publisher = dto.Publisher;
-        product.RentalExpiresAfterDays = dto.RentalExpiresAfterDays;
+        _mapper.Map(dto, product);
 
         await _productService.UpdateAsync(product);
         return NoContent();

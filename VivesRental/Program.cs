@@ -55,6 +55,7 @@ builder.Services.AddSwaggerGen(c =>
 
 builder.Services.AddAutoMapper(typeof(Program)); // zoekt automatisch alle Profile-klassen in je project
 
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
