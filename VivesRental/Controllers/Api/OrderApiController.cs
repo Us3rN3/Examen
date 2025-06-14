@@ -46,40 +46,56 @@ public class OrderApiController : ControllerBase
     [HttpPost]
     public async Task<ActionResult> Create(OrderCreateDto dto)
     {
+        if (!ModelState.IsValid)
+        {
+            var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                          .Select(e => e.ErrorMessage)
+                                          .ToList();
+            return BadRequest(new { Errors = errors });
+        }
+
         var order = _mapper.Map<Order>(dto);
         order.Id = Guid.NewGuid();
         order.CreatedAt = DateTime.UtcNow;
         order.OrderLines = new List<OrderLine>();
 
-        foreach (var productId in dto.ProductIds)
+        try
         {
-            // TODO: hier moet je een methode hebben die het eerste beschikbare artikel van een product vindt
-            var article = await ((ArticleService)_articleService).FindFirstAvailableByProductIdAsync(productId);
-            if (article == null)
-                return BadRequest($"Geen beschikbaar artikel gevonden voor product {productId}");
-
-            var product = article.Product;
-
-            var orderLine = new OrderLine
+            foreach (var productId in dto.ProductIds)
             {
-                Id = Guid.NewGuid(),
-                OrderId = order.Id,
-                ArticleId = article.Id,
-                ProductName = product.Name,
-                ProductDescription = product.Description,
-                RentedAt = DateTime.UtcNow,
-                ExpiresAt = dto.ExpiresAt
-            };
+                // Methode om eerste beschikbare artikel op te halen
+                var article = await ((ArticleService)_articleService).FindFirstAvailableByProductIdAsync(productId);
+                if (article == null)
+                    return BadRequest($"Geen beschikbaar artikel gevonden voor product {productId}");
 
-            order.OrderLines.Add(orderLine);
+                var product = article.Product;
 
-            article.Status = ArticleStatus.Verhuurd;
-            await _articleService.UpdateAsync(article);
+                var orderLine = new OrderLine
+                {
+                    Id = Guid.NewGuid(),
+                    OrderId = order.Id,
+                    ArticleId = article.Id,
+                    ProductName = product.Name,
+                    ProductDescription = product.Description,
+                    RentedAt = DateTime.UtcNow,
+                    ExpiresAt = dto.ExpiresAt
+                };
+
+                order.OrderLines.Add(orderLine);
+
+                article.Status = ArticleStatus.Verhuurd;
+                await _articleService.UpdateAsync(article);
+            }
+
+            await _orderService.AddAsync(order);
+
+            return CreatedAtAction(nameof(Get), new { id = order.Id }, null);
         }
-
-        await _orderService.AddAsync(order);
-
-        return CreatedAtAction(nameof(Get), new { id = order.Id }, null);
+        catch (Exception)
+        {
+            // Hier zou je ook logging kunnen toevoegen
+            return StatusCode(500, "Er is een fout opgetreden bij het aanmaken van de bestelling.");
+        }
     }
 
     [HttpPut("{id}/return")]

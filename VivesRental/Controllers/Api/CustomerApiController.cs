@@ -47,26 +47,58 @@ public class CustomerApiController : ControllerBase
     [HttpPost]
     public async Task<ActionResult> Create(CustomerCreateDto dto)
     {
+        if (!ModelState.IsValid)
+        {
+            var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                          .Select(e => e.ErrorMessage)
+                                          .ToList();
+            return BadRequest(new { Errors = errors });
+        }
+
         var customer = _mapper.Map<Customer>(dto);
         customer.Id = Guid.NewGuid();
 
-        await _customerService.AddAsync(customer);
-        return CreatedAtAction(nameof(GetById), new { id = customer.Id }, null);
+        try
+        {
+            await _customerService.AddAsync(customer);
+            return CreatedAtAction(nameof(GetById), new { id = customer.Id }, null);
+        }
+        catch (Exception)
+        {
+            // Hier kun je eventueel logging toevoegen
+            return StatusCode(500, "Er is een fout opgetreden bij het aanmaken van de klant.");
+        }
     }
-
 
     [HttpPut("{id}")]
     public async Task<ActionResult> Update(Guid id, CustomerUpdateDto dto)
     {
+        if (!ModelState.IsValid)
+        {
+            var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                          .Select(e => e.ErrorMessage)
+                                          .ToList();
+            return BadRequest(new { Errors = errors });
+        }
+
         var customer = await _customerService.FindByIdAsync(id);
         if (customer == null)
-            return NotFound();
+            return NotFound($"Klant met id {id} niet gevonden.");
 
         _mapper.Map(dto, customer); // updates op bestaand object
 
-        await _customerService.UpdateAsync(customer);
-        return NoContent();
+        try
+        {
+            await _customerService.UpdateAsync(customer);
+            return NoContent();
+        }
+        catch (Exception)
+        {
+            // Hier kun je eventueel logging toevoegen
+            return StatusCode(500, "Er is een fout opgetreden bij het bijwerken van de klant.");
+        }
     }
+
 
 
     [HttpDelete("{id}")]

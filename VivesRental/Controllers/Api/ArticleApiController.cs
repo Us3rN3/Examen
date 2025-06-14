@@ -51,12 +51,27 @@ public class ArticleApiController : ControllerBase
     [HttpPost]
     public async Task<ActionResult> Create(ArticleCreateDto dto)
     {
+        if (!ModelState.IsValid)
+        {
+            var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                          .Select(e => e.ErrorMessage)
+                                          .ToList();
+            return BadRequest(new { Errors = errors });
+        }
+
         var article = _mapper.Map<Article>(dto);
         article.Id = Guid.NewGuid();
 
-        await _articleService.AddAsync(article);
-
-        return CreatedAtAction(nameof(GetById), new { id = article.Id }, dto);
+        try
+        {
+            await _articleService.AddAsync(article);
+            return CreatedAtAction(nameof(GetById), new { id = article.Id }, dto);
+        }
+        catch (Exception)
+        {
+            // Optioneel: log de fout hier
+            return StatusCode(500, "Er is een fout opgetreden bij het aanmaken van het artikel.");
+        }
     }
 
     // POST: api/articles/bulk
@@ -88,13 +103,30 @@ public class ArticleApiController : ControllerBase
     [HttpPut("{id}")]
     public async Task<ActionResult> Update(Guid id, ArticleUpdateDto dto)
     {
+        if (!ModelState.IsValid)
+        {
+            var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                          .Select(e => e.ErrorMessage)
+                                          .ToList();
+            return BadRequest(new { Errors = errors });
+        }
+
         var article = await _articleService.FindByIdAsync(id);
-        if (article == null) return NotFound();
+        if (article == null)
+            return NotFound($"Artikel met id {id} niet gevonden.");
 
         _mapper.Map(dto, article); // update waarden op bestaand object
 
-        await _articleService.UpdateAsync(article);
-        return NoContent();
+        try
+        {
+            await _articleService.UpdateAsync(article);
+            return NoContent();
+        }
+        catch (Exception)
+        {
+            // Optioneel: log de fout hier
+            return StatusCode(500, "Er is een fout opgetreden bij het bijwerken van het artikel.");
+        }
     }
 
     // DELETE: api/articles/{id}
