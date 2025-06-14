@@ -67,6 +67,35 @@ public class ArticleApiController : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = article.Id }, dto);
     }
 
+    // POST: api/articles/bulk
+    [HttpPost("bulk")]
+    public async Task<ActionResult> BulkCreate(ArticleBulkCreateDto dto)
+    {
+        if (dto.Amount <= 0 || dto.Amount > 1000)
+        {
+            return BadRequest("Aantal moet tussen 1 en 1000 liggen.");
+        }
+
+        for (int i = 0; i < dto.Amount; i++)
+        {
+            var article = new Article
+            {
+                Id = Guid.NewGuid(),
+                ProductId = dto.ProductId,
+                Status = (ArticleStatus)dto.Status
+            };
+
+            await _articleService.AddAsync(article);
+        }
+
+        return Ok(new
+        {
+            Message = $"{dto.Amount} artikelen aangemaakt.",
+            ProductId = dto.ProductId,
+            Status = dto.Status
+        });
+    }
+
     // PUT: api/articles/{id}
     [HttpPut("{id}")]
     public async Task<ActionResult> Update(Guid id, ArticleUpdateDto dto)
