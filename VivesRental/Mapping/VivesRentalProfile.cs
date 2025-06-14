@@ -3,6 +3,8 @@ using VivesRental.Domains.EntitiesDB;
 using VivesRental.Domains.Enums;
 using VivesRental.DTO.Article;
 using VivesRental.DTO.Customer;
+using VivesRental.DTO.Order;
+using VivesRental.Repositories;
 
 namespace VivesRental.Mapping;
 
@@ -30,6 +32,15 @@ public class VivesRentalProfile : Profile
         CreateMap<CustomerCreateDto, Customer>();
 
         CreateMap<CustomerUpdateDto, Customer>();
+
+        CreateMap<Order, OrderDto>();
+
+        CreateMap<OrderCreateDto, Order>();
+
+        CreateMap<OrderLine, OrderLineDto>();
+
+        // Als je OrderLineCreateDto wil mappen (optioneel)
+        CreateMap<OrderLineCreateDto, OrderLine>();
 
     }
 }
