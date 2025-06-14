@@ -47,32 +47,59 @@ public class ProductApiController : ControllerBase
     public async Task<ActionResult<ProductDto>> Create([FromBody] ProductCreateDto dto)
     {
         if (!ModelState.IsValid)
-            return BadRequest(ModelState);
+        {
+            var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                          .Select(e => e.ErrorMessage)
+                                          .ToList();
+            return BadRequest(new { Errors = errors });
+        }
 
-        var product = _mapper.Map<Product>(dto);
-        product.Id = Guid.NewGuid();
+        try
+        {
+            var product = _mapper.Map<Product>(dto);
+            product.Id = Guid.NewGuid();
 
-        await _productService.AddAsync(product);
+            await _productService.AddAsync(product);
 
-        var createdDto = _mapper.Map<ProductDto>(product);
-        return CreatedAtAction(nameof(GetById), new { id = product.Id }, createdDto);
+            var createdDto = _mapper.Map<ProductDto>(product);
+            return CreatedAtAction(nameof(GetById), new { id = product.Id }, createdDto);
+        }
+        catch (Exception)
+        {
+            // Log de exception hier eventueel
+            return StatusCode(500, "Er is een onverwachte fout opgetreden bij het aanmaken van het product.");
+        }
     }
 
     [HttpPut("{id}")]
     public async Task<ActionResult> Update(Guid id, [FromBody] ProductUpdateDto dto)
     {
         if (!ModelState.IsValid)
-            return BadRequest(ModelState);
+        {
+            var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                          .Select(e => e.ErrorMessage)
+                                          .ToList();
+            return BadRequest(new { Errors = errors });
+        }
 
-        var product = await _productService.FindByIdAsync(id);
-        if (product == null)
-            return NotFound();
+        try
+        {
+            var product = await _productService.FindByIdAsync(id);
+            if (product == null)
+                return NotFound($"Product met id {id} niet gevonden.");
 
-        _mapper.Map(dto, product);
+            _mapper.Map(dto, product);
 
-        await _productService.UpdateAsync(product);
-        return NoContent();
+            await _productService.UpdateAsync(product);
+            return NoContent();
+        }
+        catch (Exception)
+        {
+            // Log de exception hier eventueel
+            return StatusCode(500, "Er is een onverwachte fout opgetreden bij het updaten van het product.");
+        }
     }
+
 
     [HttpDelete("{id}")]
     public async Task<ActionResult> Delete(Guid id)

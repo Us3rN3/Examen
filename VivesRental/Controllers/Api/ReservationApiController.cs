@@ -62,58 +62,81 @@ namespace VivesRental.Controllers.Api
         public async Task<ActionResult> Create([FromBody] ArticleReservationCreateDto createDto)
         {
             if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                              .Select(e => e.ErrorMessage)
+                                              .ToList();
+                return BadRequest(new { Errors = errors });
+            }
 
-            var reservations = await _reservationService.GetAllAsync();
-            if (reservations == null)
-                return StatusCode(500, "Fout bij ophalen van reservaties.");
+            try
+            {
+                var reservations = await _reservationService.GetAllAsync();
 
-            bool overlaps = reservations.Any(r =>
-                r.ArticleId == createDto.ArticleId &&
-                r.UntilDateTime > createDto.FromDateTime &&
-                r.FromDateTime < createDto.UntilDateTime
-            );
+                bool overlaps = reservations.Any(r =>
+                    r.ArticleId == createDto.ArticleId &&
+                    r.UntilDateTime > createDto.FromDateTime &&
+                    r.FromDateTime < createDto.UntilDateTime
+                );
 
-            if (overlaps)
-                return BadRequest("Dit artikel is al gereserveerd binnen deze periode.");
+                if (overlaps)
+                    return BadRequest("Dit artikel is al gereserveerd binnen deze periode.");
 
-            var reservation = _mapper.Map<ArticleReservation>(createDto);
-            reservation.Id = Guid.NewGuid();
+                var reservation = _mapper.Map<ArticleReservation>(createDto);
+                reservation.Id = Guid.NewGuid();
 
-            await _reservationService.AddAsync(reservation);
-            return CreatedAtAction(nameof(GetById), new { id = reservation.Id }, null);
+                await _reservationService.AddAsync(reservation);
+                return CreatedAtAction(nameof(GetById), new { id = reservation.Id }, null);
+            }
+            catch (Exception)
+            {
+                // Log exception
+                return StatusCode(500, "Er is een onverwachte fout opgetreden bij het aanmaken van de reservatie.");
+            }
         }
+
 
         // PUT
         [HttpPut("{id}")]
         public async Task<ActionResult> Update(Guid id, [FromBody] ArticleReservationUpdateDto updateDto)
         {
             if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                              .Select(e => e.ErrorMessage)
+                                              .ToList();
+                return BadRequest(new { Errors = errors });
+            }
 
-            var existingReservation = await _reservationService.FindByIdAsync(id);
-            if (existingReservation == null)
-                return NotFound();
+            try
+            {
+                var existingReservation = await _reservationService.FindByIdAsync(id);
+                if (existingReservation == null)
+                    return NotFound($"Reservatie met id {id} niet gevonden.");
 
-            var reservations = await _reservationService.GetAllAsync();
-            if (reservations == null)
-                return StatusCode(500, "Fout bij ophalen van reservaties.");
+                var reservations = await _reservationService.GetAllAsync();
+                bool overlaps = reservations.Any(r =>
+                    r.Id != id &&
+                    r.ArticleId == updateDto.ArticleId &&
+                    r.UntilDateTime > updateDto.FromDateTime &&
+                    r.FromDateTime < updateDto.UntilDateTime
+                );
 
-            bool overlaps = reservations.Any(r =>
-                r.Id != id &&
-                r.ArticleId == updateDto.ArticleId &&
-                r.UntilDateTime > updateDto.FromDateTime &&
-                r.FromDateTime < updateDto.UntilDateTime
-            );
+                if (overlaps)
+                    return BadRequest("Dit artikel is al gereserveerd binnen deze periode.");
 
-            if (overlaps)
-                return BadRequest("Dit artikel is al gereserveerd binnen deze periode.");
+                _mapper.Map(updateDto, existingReservation);
+                await _reservationService.UpdateAsync(existingReservation);
 
-            _mapper.Map(updateDto, existingReservation);
-            await _reservationService.UpdateAsync(existingReservation);
-
-            return NoContent();
+                return NoContent();
+            }
+            catch (Exception)
+            {
+                // Log de exception eventueel hier of via een logging service
+                return StatusCode(500, "Er is een onverwachte fout opgetreden bij het updaten van de reservatie.");
+            }
         }
+
 
         [HttpDelete("{id}")]
         public async Task<ActionResult> Delete(Guid id)

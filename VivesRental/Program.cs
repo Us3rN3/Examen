@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Text;
 using VivesRental.Data;
 using VivesRental.Domains.EntitiesDB;
+using VivesRental.Middleware;
 using VivesRental.Repositories;
 using VivesRental.Repositories.Interfaces;
 using VivesRental.Services;
@@ -148,6 +149,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+app.UseMiddleware<ExceptionMiddleware>();
 
 app.UseAuthentication();  // ** This must come before UseAuthorization()
 app.UseAuthorization();
