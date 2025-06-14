@@ -2,6 +2,7 @@
 using VivesRental.Domains.EntitiesDB;
 using VivesRental.Domains.Enums;
 using VivesRental.DTO.Article;
+using VivesRental.DTO.Auth;
 using VivesRental.DTO.Customer;
 using VivesRental.DTO.Order;
 using VivesRental.DTO.Product;
@@ -59,5 +60,7 @@ public class VivesRentalProfile : Profile
         CreateMap<ArticleReservationCreateDto, ArticleReservation>();
 
         CreateMap<ArticleReservationUpdateDto, ArticleReservation>();
+
+        CreateMap<LoginRequestDto, User>();
     }
 }

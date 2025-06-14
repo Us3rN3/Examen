@@ -1,59 +1,65 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using VivesRental.DTO.Auth;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using VivesRental.Domains.EntitiesDB;
+using VivesRental.DTO.Auth;
+using VivesRental.Services.Interfaces;
 
-[ApiController]
-[Route("api/auth")]
-public class AuthController : ControllerBase
+namespace VivesRental.Controllers
 {
-    private readonly IUserService _userService;
-    private readonly IConfiguration _configuration;
-
-    public AuthController(IUserService userService, IConfiguration configuration)
+    [Route("api/auth")]
+    [ApiController]
+    public class AuthController : ControllerBase
     {
-        _userService = userService;
-        _configuration = configuration;
-    }
+        private readonly IUserService _userService;
+        private readonly IConfiguration _configuration;
+        private readonly IMapper _mapper;
 
-    [HttpPost("login")]
-    [AllowAnonymous]
-    public IActionResult Login([FromBody] LoginRequest request)
-    {
-        var user = _userService.ValidateUser(request.Username, request.Password);
-
-        if (user == null)
-            return Unauthorized("Ongeldige gebruikersnaam of wachtwoord");
-
-        var token = GenerateJwtToken(user);
-
-        return Ok(new { token });
-    }
-
-    private string GenerateJwtToken(User user)
-    {
-        var jwtSettings = _configuration.GetSection("JwtSettings");
-
-        var claims = new List<Claim>
+        public AuthController(IUserService userService, IConfiguration configuration, IMapper mapper)
         {
-            new Claim(ClaimTypes.Name, user.Username),
-            new Claim(ClaimTypes.Role, user.Role)
-        };
+            _userService = userService;
+            _configuration = configuration;
+            _mapper = mapper;
+        }
 
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.GetValue<string>("SecretKey")));
-        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+        [AllowAnonymous]
+        [HttpPost("login")]
+        public IActionResult Login([FromBody] LoginRequestDto request)
+        {
+            var user = _userService.ValidateUser(request.Username, request.Password);
 
-        var token = new JwtSecurityToken(
-            issuer: jwtSettings.GetValue<string>("Issuer"),
-            audience: jwtSettings.GetValue<string>("Audience"),
-            claims: claims,
-            expires: DateTime.UtcNow.AddHours(1),
-            signingCredentials: creds);
+            if (user == null)
+                return Unauthorized("Ongeldige gebruikersnaam of wachtwoord");
 
-        return new JwtSecurityTokenHandler().WriteToken(token);
+            var token = GenerateJwtToken(user);
+            return Ok(new { token });
+        }
+
+        private string GenerateJwtToken(User user)
+        {
+            var jwtSettings = _configuration.GetSection("JwtSettings");
+
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Name, user.Username),
+                new Claim(ClaimTypes.Role, user.Role)
+            };
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["SecretKey"]));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            var token = new JwtSecurityToken(
+                issuer: jwtSettings["Issuer"],
+                audience: jwtSettings["Audience"],
+                claims: claims,
+                expires: DateTime.UtcNow.AddHours(1),
+                signingCredentials: creds);
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
+        }
     }
 }

@@ -84,6 +84,8 @@ builder.Services.AddTransient<IDAO<Customer>, CustomerDAO>();
 builder.Services.AddTransient<IService<OrderLine>, OrderLineService>();
 builder.Services.AddTransient<IDAO<OrderLine>, OrderLineDAO>();
 
+builder.Services.AddTransient<IUserService, UserService>();
+
 // Controllers and MVC
 builder.Services.AddControllers();
 builder.Services.AddControllersWithViews();
