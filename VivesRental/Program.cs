@@ -41,6 +41,8 @@ builder.Services.AddTransient<IDAO<Customer>, CustomerDAO>();
 builder.Services.AddTransient<IService<OrderLine>, OrderLineService>();
 builder.Services.AddTransient<IDAO<OrderLine>, OrderLineDAO>();
 
+builder.Services.AddControllers(); // Voor web API controllers
+builder.Services.AddControllersWithViews(); // Voor MVC controllers en views
 
 var app = builder.Build();
 
@@ -58,6 +60,7 @@ else
 
 app.UseHttpsRedirection();
 app.UseRouting();
+app.MapControllers(); // activeert de API controllers
 
 app.UseAuthorization();
 
