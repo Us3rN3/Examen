@@ -2,7 +2,7 @@
 using VivesRental.Domains.EntitiesDB;
 using VivesRental.Services.Interfaces;
 
-[Route("api/[controller]")]
+[Route("api/customers")]
 [ApiController]
 public class CustomerApiController : ControllerBase
 {

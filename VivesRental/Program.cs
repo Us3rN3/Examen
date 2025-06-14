@@ -60,7 +60,9 @@ else
 
 app.UseHttpsRedirection();
 app.UseRouting();
-app.MapControllers(); // activeert de API controllers
+
+app.MapControllers(); // voor web API controllers
+app.MapDefaultControllerRoute(); // <-- voor MVC
 
 app.UseAuthorization();
 

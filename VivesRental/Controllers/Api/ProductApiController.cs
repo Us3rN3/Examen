@@ -4,7 +4,7 @@ using VivesRental.Services.Interfaces;
 
 namespace VivesRental.Controllers.Api;
 
-[Route("api/[controller]")]
+[Route("api/products")]
 [ApiController]
 public class ProductApiController : ControllerBase
 {
