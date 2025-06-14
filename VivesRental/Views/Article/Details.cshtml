@@ -5,24 +5,25 @@
     ViewData["Title"] = "Artikeldetails";
 }
 
-<h1>Artikeldetails</h1>
+<h1 class="mb-4">Artikeldetails</h1>
 
-<hr />
-<dl class="row">
-    <dt class="col-sm-3">Product</dt>
-    <dd class="col-sm-9">@Model.Product?.Name</dd>
-
-    <dt class="col-sm-3">Status</dt>
-    <dd class="col-sm-9">@GetStatusName(Model.Status)</dd>
-
-    <dt class="col-sm-3">Artikel ID</dt>
-    <dd class="col-sm-9">@Model.Id</dd>
-</dl>
-
-<div>
-    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Bewerk</a>
-    <a asp-action="Index" class="btn btn-secondary">Terug naar overzicht</a>
+<div class="card shadow-sm mb-4" style="max-width: 500px;">
+    <div class="card-body">
+        <h5 class="card-title">@Model.Product?.Name</h5>
+        <p class="card-text">
+            <strong>Status:</strong> <span class="badge
+            @GetBadgeClass(Model.Status)">
+                @GetStatusName(Model.Status)
+            </span>
+        </p>
+        <p class="card-text"><strong>Artikel ID:</strong> @Model.Id</p>
+    </div>
 </div>
+
+<a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary me-2">
+    <i class="bi bi-pencil"></i> Bewerk
+</a>
+<a asp-action="Index" class="btn btn-secondary">Terug naar overzicht</a>
 
 @functions {
     string GetStatusName(VivesRental.Domains.Enums.ArticleStatus status)
@@ -36,5 +37,14 @@
             _ => "Onbekend"
         };
     }
-}
 
+    string GetBadgeClass(VivesRental.Domains.Enums.ArticleStatus status) =>
+        status switch
+        {
+            VivesRental.Domains.Enums.ArticleStatus.Beschikbaar => "bg-success",
+            VivesRental.Domains.Enums.ArticleStatus.Verhuurd => "bg-warning text-dark",
+            VivesRental.Domains.Enums.ArticleStatus.Gereserveerd => "bg-info text-dark",
+            VivesRental.Domains.Enums.ArticleStatus.Kapot => "bg-danger",
+            _ => "bg-secondary"
+        };
+}

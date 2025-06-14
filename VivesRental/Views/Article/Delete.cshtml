@@ -5,24 +5,33 @@
     ViewData["Title"] = "Artikel verwijderen";
 }
 
-<h1>Artikel verwijderen</h1>
+<h1 class="mb-4 text-danger">Artikel verwijderen</h1>
 
-<h4>Ben je zeker dat je dit artikel wilt verwijderen?</h4>
-<hr />
-<dl class="row">
-    <dt class="col-sm-3">Product</dt>
-    <dd class="col-sm-9">@Model.Product?.Name</dd>
+<div class="alert alert-warning" role="alert">
+    Ben je zeker dat je dit artikel wilt verwijderen?
+</div>
 
-    <dt class="col-sm-3">Status</dt>
-    <dd class="col-sm-9">@GetStatusName(Model.Status)</dd>
+<dl class="row mb-4">
+    <dt class="col-sm-4">Product</dt>
+    <dd class="col-sm-8">@Model.Product?.Name</dd>
 
-    <dt class="col-sm-3">Artikel ID</dt>
-    <dd class="col-sm-9">@Model.Id</dd>
+    <dt class="col-sm-4">Status</dt>
+    <dd class="col-sm-8">
+        <span class="badge
+            @GetBadgeClass(Model.Status)">
+            @GetStatusName(Model.Status)
+        </span>
+    </dd>
+
+    <dt class="col-sm-4">Artikel ID</dt>
+    <dd class="col-sm-8">@Model.Id</dd>
 </dl>
 
 <form asp-action="Delete" method="post">
     <input type="hidden" asp-for="Id" />
-    <button type="submit" class="btn btn-danger">Verwijder</button>
+    <button type="submit" class="btn btn-danger me-2">
+        <i class="bi bi-trash"></i> Verwijder
+    </button>
     <a asp-action="Index" class="btn btn-secondary">Annuleren</a>
 </form>
 
@@ -38,4 +47,14 @@
             _ => "Onbekend"
         };
     }
+
+    string GetBadgeClass(ArticleStatus status) =>
+        status switch
+        {
+            ArticleStatus.Beschikbaar => "bg-success",
+            ArticleStatus.Verhuurd => "bg-warning text-dark",
+            ArticleStatus.Gereserveerd => "bg-info text-dark",
+            ArticleStatus.Kapot => "bg-danger",
+            _ => "bg-secondary"
+        };
 }
