@@ -19,17 +19,31 @@ namespace VivesRental.Controllers.Api
             _mapper = mapper;
         }
 
+        // GET all
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ArticleReservationDto>>> GetAll()
+        public async Task<ActionResult<IEnumerable<ArticleReservationDto>>> GetAll(
+            [FromQuery] Guid? customerId = null,
+            [FromQuery] DateTime? from = null,
+            [FromQuery] DateTime? until = null)
         {
             var reservations = await _reservationService.GetAllAsync();
             if (reservations == null)
                 return NotFound();
 
+            if (customerId.HasValue)
+                reservations = reservations.Where(r => r.CustomerId == customerId.Value);
+
+            if (from.HasValue)
+                reservations = reservations.Where(r => r.FromDateTime >= from.Value);
+
+            if (until.HasValue)
+                reservations = reservations.Where(r => r.UntilDateTime <= until.Value);
+
             var dtos = _mapper.Map<IEnumerable<ArticleReservationDto>>(reservations);
             return Ok(dtos);
         }
 
+        // GET by id
         [HttpGet("{id}")]
         public async Task<ActionResult<ArticleReservationDto>> GetById(Guid id)
         {
@@ -41,6 +55,7 @@ namespace VivesRental.Controllers.Api
             return Ok(dto);
         }
 
+        // POST
         [HttpPost]
         public async Task<ActionResult> Create([FromBody] ArticleReservationCreateDto createDto)
         {
@@ -64,10 +79,10 @@ namespace VivesRental.Controllers.Api
             reservation.Id = Guid.NewGuid();
 
             await _reservationService.AddAsync(reservation);
-
             return CreatedAtAction(nameof(GetById), new { id = reservation.Id }, null);
         }
 
+        // PUT
         [HttpPut("{id}")]
         public async Task<ActionResult> Update(Guid id, [FromBody] ArticleReservationUpdateDto updateDto)
         {
@@ -82,10 +97,9 @@ namespace VivesRental.Controllers.Api
             if (reservations == null)
                 return StatusCode(500, "Fout bij ophalen van reservaties.");
 
-            // Enkel overlappingen op hetzelfde artikel
             bool overlaps = reservations.Any(r =>
                 r.Id != id &&
-                r.ArticleId == existingReservation.ArticleId &&
+                r.ArticleId == updateDto.ArticleId &&
                 r.UntilDateTime > updateDto.FromDateTime &&
                 r.FromDateTime < updateDto.UntilDateTime
             );
@@ -94,12 +108,10 @@ namespace VivesRental.Controllers.Api
                 return BadRequest("Dit artikel is al gereserveerd binnen deze periode.");
 
             _mapper.Map(updateDto, existingReservation);
-
             await _reservationService.UpdateAsync(existingReservation);
 
             return NoContent();
         }
-
 
         [HttpDelete("{id}")]
         public async Task<ActionResult> Delete(Guid id)
@@ -113,7 +125,7 @@ namespace VivesRental.Controllers.Api
             return NoContent();
         }
 
-        // 🔍 Filter op klant en/of datum
+        // Filter op klant en/of datum
         [HttpGet("search")]
         public async Task<IActionResult> SearchReservations([FromQuery] Guid? customerId, [FromQuery] DateTime? from, [FromQuery] DateTime? until)
         {

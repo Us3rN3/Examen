@@ -52,7 +52,7 @@ public class VivesRentalProfile : Profile
             .ForMember(dest => dest.Id, opt => opt.Ignore()); // Id mag niet overschreven worden
 
         CreateMap<ArticleReservation, ArticleReservationDto>()
-            .ForMember(dest => dest.ArticleName, opt => opt.MapFrom(src => src.Article.Product.Name))
+            .ForMember(dest => dest.ArticleName, opt => opt.MapFrom(src => src.Article.Product!.Name))
             .ForMember(dest => dest.CustomerFullName, opt =>
                 opt.MapFrom(src => $"{src.Customer.FirstName} {src.Customer.LastName}"));
 
