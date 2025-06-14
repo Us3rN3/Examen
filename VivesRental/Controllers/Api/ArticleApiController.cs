@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
 using VivesRental.Domains.EntitiesDB;
 using VivesRental.Domains.Enums;
 using VivesRental.DTO.Article;
@@ -11,11 +12,14 @@ namespace VivesRental.Controllers.Api;
 public class ArticleApiController : ControllerBase
 {
     private readonly IService<Article> _articleService;
+    private readonly IMapper _mapper;
 
-    public ArticleApiController(IService<Article> articleService)
+    public ArticleApiController(IService<Article> articleService, IMapper mapper)
     {
         _articleService = articleService;
+        _mapper = mapper;
     }
+
 
     // GET: api/articles
     [HttpGet]
@@ -24,15 +28,11 @@ public class ArticleApiController : ControllerBase
         var articles = await _articleService.GetAllAsync();
         if (articles == null) return NotFound();
 
-        var dtos = articles.Select(a => new ArticleDto
-        {
-            Id = a.Id,
-            ProductName = a.Product?.Name ?? "Onbekend",
-            Status = (int)a.Status
-        });
+        var dtos = _mapper.Map<IEnumerable<ArticleDto>>(articles);
 
         return Ok(dtos);
     }
+
 
     // GET: api/articles/{id}
     [HttpGet("{id}")]
@@ -41,13 +41,7 @@ public class ArticleApiController : ControllerBase
         var article = await _articleService.FindByIdAsync(id);
         if (article == null) return NotFound();
 
-        var dto = new ArticleDto
-        {
-            Id = article.Id,
-            ProductName = article.Product?.Name ?? "Onbekend",
-            Status = (int)article.Status
-        };
-
+        var dto = _mapper.Map<ArticleDto>(article);
         return Ok(dto);
     }
 
@@ -55,12 +49,8 @@ public class ArticleApiController : ControllerBase
     [HttpPost]
     public async Task<ActionResult> Create(ArticleCreateDto dto)
     {
-        var article = new Article
-        {
-            Id = Guid.NewGuid(),
-            ProductId = dto.ProductId,
-            Status = (ArticleStatus)dto.Status
-        };
+        var article = _mapper.Map<Article>(dto);
+        article.Id = Guid.NewGuid();
 
         await _articleService.AddAsync(article);
 
@@ -72,29 +62,25 @@ public class ArticleApiController : ControllerBase
     public async Task<ActionResult> BulkCreate(ArticleBulkCreateDto dto)
     {
         if (dto.Amount <= 0 || dto.Amount > 1000)
-        {
             return BadRequest("Aantal moet tussen 1 en 1000 liggen.");
-        }
 
-        for (int i = 0; i < dto.Amount; i++)
-        {
-            var article = new Article
+        var articles = Enumerable.Range(0, dto.Amount)
+            .Select(_ =>
             {
-                Id = Guid.NewGuid(),
-                ProductId = dto.ProductId,
-                Status = (ArticleStatus)dto.Status
-            };
+                var article = _mapper.Map<Article>(dto);
+                article.Id = Guid.NewGuid();
+                return article;
+            });
 
+        foreach (var article in articles)
+        {
             await _articleService.AddAsync(article);
         }
 
-        return Ok(new
-        {
-            Message = $"{dto.Amount} artikelen aangemaakt.",
-            ProductId = dto.ProductId,
-            Status = dto.Status
-        });
+
+        return Ok(new { Message = $"{dto.Amount} artikelen aangemaakt." });
     }
+
 
     // PUT: api/articles/{id}
     [HttpPut("{id}")]
@@ -103,10 +89,9 @@ public class ArticleApiController : ControllerBase
         var article = await _articleService.FindByIdAsync(id);
         if (article == null) return NotFound();
 
-        article.Status = (ArticleStatus)dto.Status;
+        _mapper.Map(dto, article); // update waarden op bestaand object
 
         await _articleService.UpdateAsync(article);
-
         return NoContent();
     }
 

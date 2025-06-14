@@ -53,6 +53,7 @@ builder.Services.AddSwaggerGen(c =>
     c.IncludeXmlComments(xmlPath);
 });
 
+builder.Services.AddAutoMapper(typeof(Program)); // zoekt automatisch alle Profile-klassen in je project
 
 var app = builder.Build();
 
