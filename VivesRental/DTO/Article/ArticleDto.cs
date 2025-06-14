@@ -1,4 +1,4 @@
-﻿namespace VivesRental.Models;
+﻿namespace VivesRental.DTO.Article;
 
 public class ArticleDto
 {

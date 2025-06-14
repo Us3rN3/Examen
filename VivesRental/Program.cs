@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using System.Reflection;
 using VivesRental.Data;
 using VivesRental.Domains.EntitiesDB;
 using VivesRental.Repositories;
@@ -45,7 +46,13 @@ builder.Services.AddControllers(); // Voor web API controllers
 builder.Services.AddControllersWithViews(); // Voor MVC controllers en views
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    c.IncludeXmlComments(xmlPath);
+});
+
 
 var app = builder.Build();
 
