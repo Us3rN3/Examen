@@ -2,7 +2,16 @@
     ViewData["Title"] = "Dashboard";
 }
 
-<h1>VivesRental Dashboard</h1>
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+}
+
+<h1 class="mb-4">VivesRental Dashboard</h1>
 
 <div class="row">
     <div class="col-md-4">
@@ -13,11 +22,11 @@
     <div class="col-md-4">
         <a href="/Order/Start" class="btn btn-outline-success w-100 mb-3">Nieuwe Verhuuring</a>
         <a href="/Order/Overview" class="btn btn-outline-secondary w-100 mb-3">Bestellingen</a>
-        <a href="/Order/SearchReturn" class="btn btn-outline-danger w-100 mb-3">Artikelen Terugbrengen</a>
+        <a href="/Order/SearchReturn" class="btn btn-outline-danger w-100 mb-3">Terugbrengen</a>
     </div>
     <div class="col-md-4">
         <a href="/Reservation" class="btn btn-outline-info w-100 mb-3">Reserveringen</a>
         <a href="/Reservation/Create" class="btn btn-outline-success w-100 mb-3">Nieuwe Reservering</a>
-        <a href="/swagger" class="btn btn-outline-secondary w-100 mb-3">Swagger</a>
+        <a href="/swagger" class="btn btn-outline-dark w-100 mb-3">Swagger Docs</a>
     </div>
 </div>

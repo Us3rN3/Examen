@@ -1,5 +1,4 @@
 ﻿@model IEnumerable<VivesRental.Domains.EntitiesDB.OrderLine>
-
 @{
     var order = ViewBag.Order as VivesRental.Domains.EntitiesDB.Order;
     ViewData["Title"] = "Artikelen terugbrengen";
@@ -12,11 +11,11 @@
 
 @if (!Model.Any())
 {
-    <p><em>Er zijn geen artikels gekoppeld aan dit order.</em></p>
+    <p><em>Er zijn geen artikelen gekoppeld aan dit order.</em></p>
 }
 else
 {
-    <table class="table">
+    <table class="table table-striped">
         <thead>
             <tr>
                 <th>Product</th>
@@ -37,7 +36,7 @@ else
                     <td>
                         @if (!line.ReturnedAt.HasValue)
                         {
-                            <form asp-action="ReturnArticle" method="post">
+                            <form asp-action="ReturnArticle" method="post" class="d-inline">
                                 <input type="hidden" name="orderLineId" value="@line.Id" />
                                 <input type="hidden" name="orderId" value="@order?.Id" />
                                 <button type="submit" class="btn btn-success btn-sm">Breng terug</button>
@@ -53,3 +52,5 @@ else
         </tbody>
     </table>
 }
+
+<a asp-action="Overview" class="btn btn-secondary mt-3">Terug naar overzicht</a>

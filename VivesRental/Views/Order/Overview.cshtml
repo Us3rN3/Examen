@@ -10,7 +10,7 @@
     <div class="alert alert-info">@TempData["Info"]</div>
 }
 
-<table class="table">
+<table class="table table-bordered">
     <thead>
         <tr>
             <th>Klant</th>
@@ -25,14 +25,13 @@
                 <td>@group.Key.CustomerFirstName @group.Key.CustomerLastName</td>
                 <td>@group.Key.CustomerEmail</td>
                 <td>
-                    <ul>
+                    <ul class="list-unstyled mb-0">
                         @foreach (var order in group)
                         {
-                            <li>
-                                <strong>@order.CreatedAt.ToShortDateString()</strong> –
-                                @order.Id<br />
-                                <a asp-action="Details" asp-route-id="@order.Id" class="btn btn-primary btn-sm">Details</a>
-                                <form asp-action="ReturnAll" method="post" style="display:inline">
+                            <li class="mb-2">
+                                <strong>@order.CreatedAt.ToShortDateString()</strong> – Order #@order.Id<br />
+                                <a asp-action="Details" asp-route-id="@order.Id" class="btn btn-primary btn-sm me-1">Details</a>
+                                <form asp-action="ReturnAll" method="post" style="display:inline;">
                                     <input type="hidden" name="orderId" value="@order.Id" />
                                     <button type="submit" class="btn btn-warning btn-sm">Alles terugbrengen</button>
                                 </form>

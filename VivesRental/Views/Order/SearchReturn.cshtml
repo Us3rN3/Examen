@@ -4,13 +4,10 @@
 
 <h1>Zoek een order om terug te brengen</h1>
 
-<form asp-controller="Order" asp-action="Details" method="get">
-    <div class="form-group">
-        <label for="id">Ordernummer</label>
-        <input type="text" class="form-control" id="id" name="id" placeholder="Plak of typ het ordernummer in">
+<form asp-controller="Order" asp-action="Details" method="get" class="mb-3">
+    <div class="mb-3">
+        <label for="id" class="form-label">Ordernummer</label>
+        <input type="text" class="form-control" id="id" name="id" placeholder="Plak of typ het ordernummer in" required />
     </div>
-    <button type="submit" class="btn btn-primary mt-2">Ga naar orderdetails</button>
+    <button type="submit" class="btn btn-primary">Ga naar orderdetails</button>
 </form>
-
-
-

@@ -7,7 +7,7 @@
 
 <h1>Selecteer Producten</h1>
 
-<table class="table">
+<table class="table table-striped">
     <thead>
         <tr>
             <th>Product</th>
@@ -22,13 +22,15 @@
                 <td>@product.ProductName</td>
                 <td>@product.AvailableCount</td>
                 <td>
-                    <form asp-action="AddToOrder" method="post">
+                    <form asp-action="AddToOrder" method="post" class="d-inline">
                         <input type="hidden" name="orderId" value="@orderId" />
                         <input type="hidden" name="productId" value="@product.ProductId" />
-                        <button type="submit" class="btn btn-primary">Voeg toe aan order</button>
+                        <button type="submit" class="btn btn-primary btn-sm">Voeg toe aan order</button>
                     </form>
                 </td>
             </tr>
         }
     </tbody>
 </table>
+
+<a asp-action="Overview" class="btn btn-secondary mt-3">Terug naar overzicht</a>

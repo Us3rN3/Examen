@@ -8,7 +8,7 @@
 <p><strong>Order ID:</strong> @order?.Id</p>
 <p><strong>Aangemaakt op:</strong> @order?.CreatedAt.ToShortDateString()</p>
 
-<table class="table">
+<table class="table table-striped">
     <thead>
         <tr>
             <th>Product</th>
@@ -29,7 +29,7 @@
                 <td>
                     @if (!line.ReturnedAt.HasValue)
                     {
-                        <form asp-action="ReturnArticle" method="post">
+                        <form asp-action="ReturnArticle" method="post" class="d-inline">
                             <input type="hidden" name="orderLineId" value="@line.Id" />
                             <input type="hidden" name="orderId" value="@order?.Id" />
                             <button type="submit" class="btn btn-success btn-sm">Breng terug</button>
@@ -44,3 +44,5 @@
         }
     </tbody>
 </table>
+
+<a asp-action="Overview" class="btn btn-secondary mt-3">Terug naar overzicht</a>

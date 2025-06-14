@@ -1,25 +1,34 @@
 ﻿@using VivesRental.Domains.EntitiesDB
 @model IEnumerable<Product>
 
-<h1>Producten</h1>
-<a asp-action="Create">Nieuw Product</a>
+@{
+    ViewData["Title"] = "Producten";
+}
 
-<table class="table">
-    <tr>
-        <th>Naam</th>
-        <th>Beschrijving</th>
-        <th>Acties</th>
-    </tr>
-    @foreach (var item in Model)
-    {
+<h1>Producten</h1>
+
+<a asp-action="Create" class="btn btn-primary mb-3">Nieuw Product</a>
+
+<table class="table table-striped">
+    <thead>
         <tr>
-            <td>@item.Name</td>
-            <td>@item.Description</td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Bewerk</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Verwijder</a>
-            </td>
+            <th>Naam</th>
+            <th>Beschrijving</th>
+            <th>Acties</th>
         </tr>
-    }
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.Name</td>
+                <td>@item.Description</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning me-1">Bewerk</a>
+                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info me-1">Details</a>
+                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Verwijder</a>
+                </td>
+            </tr>
+        }
+    </tbody>
 </table>
