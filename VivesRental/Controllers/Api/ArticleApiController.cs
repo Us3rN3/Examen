@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using VivesRental.Domains.EntitiesDB;
 using VivesRental.Domains.Enums;
@@ -9,6 +10,7 @@ namespace VivesRental.Controllers.Api;
 
 [Route("api/articles")]
 [ApiController]
+[Authorize]
 public class ArticleApiController : ControllerBase
 {
     private readonly IService<Article> _articleService;

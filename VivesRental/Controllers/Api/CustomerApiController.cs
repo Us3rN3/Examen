@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using VivesRental.Domains.EntitiesDB;
 using VivesRental.DTO.Customer;
@@ -6,6 +7,7 @@ using VivesRental.Services.Interfaces;
 
 [Route("api/customers")]
 [ApiController]
+[Authorize]
 public class CustomerApiController : ControllerBase
 {
     private readonly IService<Customer> _customerService;

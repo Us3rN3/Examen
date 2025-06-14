@@ -11,6 +11,7 @@ using VivesRental.Services.Interfaces;
 
 namespace VivesRental.Controllers
 {
+    [AllowAnonymous]
     [Route("api/auth")]
     [ApiController]
     public class AuthController : ControllerBase

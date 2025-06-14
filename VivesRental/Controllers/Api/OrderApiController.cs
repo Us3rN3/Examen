@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using VivesRental.Domains.EntitiesDB;
 using VivesRental.Domains.Enums;
@@ -8,6 +9,7 @@ using VivesRental.Services.Interfaces;
 
 [Route("api/orders")]
 [ApiController]
+[Authorize]
 public class OrderApiController : ControllerBase
 {
     private readonly IService<Order> _orderService;

@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using VivesRental.Domains.EntitiesDB;
 using VivesRental.DTO.Product;
@@ -8,6 +9,7 @@ namespace VivesRental.Controllers.Api;
 
 [Route("api/products")]
 [ApiController]
+[Authorize]
 public class ProductApiController : ControllerBase
 {
     private readonly IService<Product> _productService;

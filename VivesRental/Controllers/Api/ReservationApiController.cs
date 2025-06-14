@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using VivesRental.Domains.EntitiesDB;
 using VivesRental.DTO.Reservation;
@@ -8,6 +9,7 @@ namespace VivesRental.Controllers.Api
 {
     [Route("api/reservations")]
     [ApiController]
+    [Authorize]
     public class ReservationApiController : ControllerBase
     {
         private readonly IService<ArticleReservation> _reservationService;
@@ -123,25 +125,6 @@ namespace VivesRental.Controllers.Api
             await _reservationService.DeleteAsync(existingReservation);
 
             return NoContent();
-        }
-
-        // Filter op klant en/of datum
-        [HttpGet("search")]
-        public async Task<IActionResult> SearchReservations([FromQuery] Guid? customerId, [FromQuery] DateTime? from, [FromQuery] DateTime? until)
-        {
-            var reservations = await _reservationService.GetAllAsync();
-            if (reservations == null)
-                return NotFound();
-
-            var filtered = reservations
-                .Where(r =>
-                    (!customerId.HasValue || r.CustomerId == customerId) &&
-                    (!from.HasValue || r.UntilDateTime >= from) &&
-                    (!until.HasValue || r.FromDateTime <= until)
-                );
-
-            var dtos = _mapper.Map<IEnumerable<ArticleReservationDto>>(filtered);
-            return Ok(dtos);
         }
     }
 }
