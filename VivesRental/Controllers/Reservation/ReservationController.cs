@@ -23,6 +23,9 @@ public class ReservationController : Controller
     [HttpGet]
     public async Task<IActionResult> Index(string? search, int page = 1, int pageSize = 10)
     {
+        // Cleanup vóór we iets ophalen
+        await CleanupEmptyReservations();
+
         var allReservations = await _reservationService.GetAllAsync();
         if (allReservations == null)
             return View(new ReservationIndexViewModel());
@@ -85,7 +88,6 @@ public class ReservationController : Controller
         return View(model);
     }
 
-
     [HttpPost]
     public async Task<IActionResult> Create(CreateReservationViewModel model)
     {
@@ -95,7 +97,6 @@ public class ReservationController : Controller
             return View(model);
         }
 
-        // Check of CustomerId en ProductId ingevuld zijn
         if (!model.CustomerId.HasValue || !model.ProductId.HasValue)
         {
             ModelState.AddModelError("", "Klant en product zijn verplicht.");
@@ -103,7 +104,6 @@ public class ReservationController : Controller
             return View(model);
         }
 
-        // Check dat de startdatum niet in het verleden ligt
         if (model.FromDateTime.Date < DateTime.Today)
         {
             TempData["Error"] = "Je kan geen reservering maken in het verleden.";
@@ -111,7 +111,6 @@ public class ReservationController : Controller
             return View(model);
         }
 
-        // Check dat einddatum na startdatum ligt
         if (model.UntilDateTime < model.FromDateTime)
         {
             ModelState.AddModelError("", "De einddatum moet na de startdatum liggen.");
@@ -119,7 +118,6 @@ public class ReservationController : Controller
             return View(model);
         }
 
-        // Zoek beschikbaar artikel voor gekozen product
         var article = (await _articleService.GetAllAsync())
             .FirstOrDefault(a => a.ProductId == model.ProductId.Value && a.Status == ArticleStatus.Beschikbaar);
 
@@ -154,19 +152,33 @@ public class ReservationController : Controller
 
         var articles = await _articleService.GetAllAsync();
 
-        // Pak enkel de productIds van artikelen die beschikbaar zijn
         var availableProductIds = articles
             .Where(a => a.Status == ArticleStatus.Beschikbaar && a.Product != null)
             .Select(a => a.ProductId)
             .Distinct()
             .ToList();
 
-        // Pak de producten die horen bij de beschikbare artikelen
         ViewBag.Products = articles
             .Where(a => availableProductIds.Contains(a.ProductId) && a.Product != null)
             .Select(a => a.Product!)
             .Distinct()
             .ToList();
     }
+    private async Task CleanupEmptyReservations()
+    {
+        var allReservations = await _reservationService.GetAllAsync();
+        var allArticles = await _articleService.GetAllAsync();
+        var allCustomers = await _customerService.GetAllAsync();
 
+        var validArticleIds = allArticles.Select(a => a.Id).ToHashSet();
+        var validCustomerIds = allCustomers.Select(c => c.Id).ToHashSet();
+
+        foreach (var reservation in allReservations.ToList())
+        {
+            if (!validArticleIds.Contains(reservation.ArticleId) || !validCustomerIds.Contains(reservation.CustomerId))
+            {
+                await _reservationService.DeleteAsync(reservation);
+            }
+        }
+    }
 }

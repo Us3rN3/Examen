@@ -17,7 +17,7 @@ public class ArticleController : Controller
         _productService = productService;
     }
 
-    public async Task<IActionResult> Index(string? searchTerm, int page = 1, int pageSize = 10)
+    public async Task<IActionResult> Index(string? searchTerm, ArticleStatus? statusFilter, int page = 1, int pageSize = 10)
     {
         var allArticles = await _service.GetAllAsync() ?? new List<Article>();
 
@@ -26,6 +26,13 @@ public class ArticleController : Controller
             allArticles = allArticles
                 .Where(a => a.Product != null &&
                             a.Product.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+        }
+
+        if (statusFilter.HasValue)
+        {
+            allArticles = allArticles
+                .Where(a => a.Status == statusFilter.Value)
                 .ToList();
         }
 
@@ -41,12 +48,14 @@ public class ArticleController : Controller
         {
             Articles = pagedArticles,
             SearchTerm = searchTerm,
+            StatusFilter = statusFilter,
             CurrentPage = page,
             TotalPages = totalPages
         };
 
         return View(viewModel);
     }
+
 
 
     public async Task<IActionResult> Details(Guid id)
@@ -119,10 +128,26 @@ public class ArticleController : Controller
             return View(article);
         }
 
+        // Origineel artikel ophalen
+        var originalArticle = await _service.FindByIdAsync(article.Id);
+        if (originalArticle == null)
+            return NotFound();
+
+        // Check statuswijziging
+        bool wasInUse = originalArticle.Status == ArticleStatus.Verhuurd || originalArticle.Status == ArticleStatus.Gereserveerd;
+        bool statusChangedToOther = article.Status != originalArticle.Status;
+
+        if (wasInUse && statusChangedToOther)
+        {
+            ModelState.AddModelError("", "Status kan niet gewijzigd worden omdat het artikel momenteel verhuurd of gereserveerd is.");
+            return View(article);
+        }
+
         await _service.UpdateAsync(article);
         TempData["Success"] = "Artikel succesvol bijgewerkt.";
         return RedirectToAction(nameof(Index));
     }
+
 
     public async Task<IActionResult> Delete(Guid id)
     {

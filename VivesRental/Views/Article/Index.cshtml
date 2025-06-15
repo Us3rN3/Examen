@@ -1,4 +1,4 @@
-﻿@model ArticleIndexViewModel
+﻿@model VivesRental.Models.Article.ArticleIndexViewModel
 @using VivesRental.Domains.Enums
 @using VivesRental.Models.Article
 @{
@@ -23,15 +23,25 @@
 <h1 class="mb-4">Artikelen</h1>
 
 <form method="get" asp-action="Index" class="row mb-4">
-    <div class="col-md-6">
+    <div class="col-md-4">
         <input type="text" name="searchTerm" value="@Model.SearchTerm" class="form-control" placeholder="Zoek op productnaam" />
+    </div>
+    <div class="col-md-3">
+        <select name="statusFilter" class="form-select">
+            <option value="">-- Alle statussen --</option>
+            @foreach (ArticleStatus status in Enum.GetValues(typeof(ArticleStatus)))
+            {
+                var selected = Model.StatusFilter == status ? "selected" : "";
+                <option value="@(Convert.ToInt32(status))" selected="@selected">@GetStatusName(status)</option>
+            }
+        </select>
     </div>
     <div class="col-md-2">
         <button type="submit" class="btn btn-primary">
             <i class="bi bi-search"></i> Zoek
         </button>
     </div>
-    <div class="col-md-4 text-end">
+    <div class="col-md-3 text-end">
         <a asp-action="Create" class="btn btn-success">
             <i class="bi bi-plus-lg"></i> Nieuw Artikel
         </a>
@@ -82,7 +92,10 @@
                     <a class="page-link"
                        asp-action="Index"
                        asp-route-page="@i"
-                       asp-route-searchTerm="@Model.SearchTerm">@i</a>
+                       asp-route-searchTerm="@Model.SearchTerm"
+                       asp-route-statusFilter="@(Model.StatusFilter.HasValue ? (int)Model.StatusFilter : (int?)null)">
+                        @i
+                    </a>
                 </li>
             }
         </ul>

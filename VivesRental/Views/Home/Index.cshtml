@@ -30,13 +30,13 @@
         <option value="products">Producten</option>
         <option value="articles">Artikels</option>
         <option value="reservations">Reservaties</option>
-        <option value="orders">>Orders</option>
+        <option value="orders">Orders</option>
     </select>
 </div>
 
 <!-- Overzichtscijfers -->
-<div class="row g-4" id="metricsContainer">
-    <div class="col-md-2 metric-card" data-metric="customers">
+<div class="d-flex flex-wrap" id="metricsContainer" style="gap: 1rem;">
+    <div class="metric-card flex-fill" data-metric="customers" style="min-width: 150px; max-width: 100%;">
         <div class="card text-white bg-primary h-100">
             <div class="card-body">
                 <h5 class="card-title">Klanten</h5>
@@ -44,7 +44,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-2 metric-card" data-metric="products">
+    <div class="metric-card flex-fill" data-metric="products" style="min-width: 150px; max-width: 100%;">
         <div class="card text-white bg-success h-100">
             <div class="card-body">
                 <h5 class="card-title">Producten</h5>
@@ -52,7 +52,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-2 metric-card" data-metric="articles">
+    <div class="metric-card flex-fill" data-metric="articles" style="min-width: 150px; max-width: 100%;">
         <div class="card text-white bg-warning h-100">
             <div class="card-body">
                 <h5 class="card-title">Artikels</h5>
@@ -60,7 +60,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-2 metric-card" data-metric="reservations">
+    <div class="metric-card flex-fill" data-metric="reservations" style="min-width: 150px; max-width: 100%;">
         <div class="card text-white bg-danger h-100">
             <div class="card-body">
                 <h5 class="card-title">Actieve Reservaties</h5>
@@ -68,7 +68,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-2 metric-card" data-metric="orders">
+    <div class="metric-card flex-fill" data-metric="orders" style="min-width: 150px; max-width: 100%;">
         <div class="card text-white bg-info h-100">
             <div class="card-body">
                 <h5 class="card-title">Totaal Orders</h5>
@@ -77,6 +77,7 @@
         </div>
     </div>
 </div>
+
 
 <!-- Navigatie -->
 <hr class="my-5" />
