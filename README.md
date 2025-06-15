@@ -217,7 +217,7 @@ Oplossing:
 
 ---
 
-## 🏆 Evaluatiecriteria (Behaald)
+## Evaluatiecriteria (Behaald)
 
 | Criterium | Punten | Status |
 |-----------|---------|---------|
@@ -232,7 +232,7 @@ Oplossing:
 
 ---
 
-## 📞 Contact & Support
+## Contact & Support
 
 **Student**: Quinten Verbeke  
 **Email**: quinten.verbeke@student.vives.be  
