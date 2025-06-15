@@ -1,32 +1,33 @@
-using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using VivesRental.Data;
 using VivesRental.Models;
+using VivesRental.Domains.DataDB;
 
-namespace VivesRental.Controllers
+public class HomeController : Controller
 {
-    public class HomeController : Controller
+    private readonly ILogger<HomeController> _logger;
+    private readonly RentalDbContext _context;
+
+    public HomeController(ILogger<HomeController> logger, RentalDbContext context)
     {
-        private readonly ILogger<HomeController> _logger;
+        _logger = logger;
+        _context = context;
+    }
 
-        public HomeController(ILogger<HomeController> logger)
+    public IActionResult Index()
+    {
+        var model = new DashboardViewModel
         {
-            _logger = logger;
-        }
+            TotalCustomers = _context.Customers.Count(),
+            TotalProducts = _context.Products.Count(),
+            TotalArticles = _context.Articles.Count(),
+            ActiveOrders = _context.Orders.Count(),
+            ActiveReservations = _context.ArticleReservations.Count(r => r.FromDateTime <= DateTime.Today && r.UntilDateTime >= DateTime.Today)
+        };
 
-        public IActionResult Index()
-        {
-            return View();
-        }
 
-        public IActionResult Privacy()
-        {
-            return View();
-        }
-
-        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public IActionResult Error()
-        {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
-        }
+        return View(model);
     }
 }
+
