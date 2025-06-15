@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using VivesRental.Domains.EntitiesDB;
+using VivesRental.Models.Product;
 using VivesRental.Services;
 using VivesRental.Services.Interfaces;
 
@@ -12,11 +13,38 @@ public class ProductController : Controller
         _service = service;
     }
 
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(string? searchTerm, int page = 1, int pageSize = 10)
     {
-        var products = await _service.GetAllAsync();
-        return View(products);
+        var allProducts = await _service.GetAllAsync();
+
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            allProducts = allProducts.Where(p =>
+                (p.Name?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (p.Description?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (p.Manufacturer?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false)
+            ).ToList();
+        }
+
+        var totalProducts = allProducts.Count();
+        var totalPages = (int)Math.Ceiling(totalProducts / (double)pageSize);
+
+        var products = allProducts
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToList();
+
+        var viewModel = new ProductIndexViewModel
+        {
+            Products = products,
+            SearchTerm = searchTerm,
+            PageNumber = page,
+            TotalPages = totalPages
+        };
+
+        return View(viewModel);
     }
+
 
     public IActionResult Create() => View();
 

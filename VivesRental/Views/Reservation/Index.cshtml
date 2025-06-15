@@ -1,24 +1,19 @@
-﻿@model IEnumerable<VivesRental.Domains.EntitiesDB.ArticleReservation>
+﻿@model VivesRental.Models.Reservation.ReservationIndexViewModel
 
 @{
     ViewData["Title"] = "Reserveringsoverzicht";
 }
 
-<h1>Reserveringen</h1>
+<h1 class="mb-4">Reserveringen</h1>
 
 <form method="get" class="mb-3">
     <div class="input-group">
-        <input type="text" name="search" class="form-control" placeholder="Zoek op klantnaam..." value="@Context.Request.Query["search"]" />
+        <input type="text" name="search" class="form-control" placeholder="Zoek op klantnaam" value="@Model.Search" />
         <button type="submit" class="btn btn-outline-primary">Zoek</button>
     </div>
 </form>
 
-@if (TempData["SuccessMessage"] != null)
-{
-    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
-}
-
-@if (!Model.Any())
+@if (!Model.Reservations.Any())
 {
     <p><em>Geen reserveringen gevonden.</em></p>
 }
@@ -35,7 +30,7 @@ else
             </tr>
         </thead>
         <tbody>
-            @foreach (var r in Model)
+            @foreach (var r in Model.Reservations)
             {
                 <tr>
                     <td>@r.Customer.FirstName @r.Customer.LastName</td>
@@ -47,4 +42,21 @@ else
             }
         </tbody>
     </table>
+
+    <nav>
+        <ul class="pagination">
+            <li class="page-item @(Model.HasPreviousPage ? "" : "disabled")">
+                <a class="page-link" asp-action="Index" asp-route-page="@(Model.PageNumber - 1)" asp-route-search="@Model.Search">Vorige</a>
+            </li>
+            @for (int i = 1; i <= Model.TotalPages; i++)
+            {
+                <li class="page-item @(Model.PageNumber == i ? "active" : "")">
+                    <a class="page-link" asp-action="Index" asp-route-page="@i" asp-route-search="@Model.Search">@i</a>
+                </li>
+            }
+            <li class="page-item @(Model.HasNextPage ? "" : "disabled")">
+                <a class="page-link" asp-action="Index" asp-route-page="@(Model.PageNumber + 1)" asp-route-search="@Model.Search">Volgende</a>
+            </li>
+        </ul>
+    </nav>
 }

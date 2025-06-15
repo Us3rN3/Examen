@@ -21,6 +21,44 @@ public class ReservationController : Controller
     }
 
     [HttpGet]
+    public async Task<IActionResult> Index(string? search, int page = 1, int pageSize = 10)
+    {
+        var allReservations = await _reservationService.GetAllAsync();
+        if (allReservations == null)
+            return View(new ReservationIndexViewModel());
+
+        var filtered = allReservations;
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            search = search.ToLower();
+            filtered = allReservations.Where(r =>
+                r.Customer.FirstName.ToLower().Contains(search) ||
+                r.Customer.LastName.ToLower().Contains(search)
+            );
+        }
+
+        var totalCount = filtered.Count();
+        var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+
+        var reservations = filtered
+            .OrderByDescending(r => r.FromDateTime)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToList();
+
+        var viewModel = new ReservationIndexViewModel
+        {
+            Reservations = reservations,
+            Search = search,
+            PageNumber = page,
+            TotalPages = totalPages
+        };
+
+        return View(viewModel);
+    }
+
+    [HttpGet]
     public async Task<IActionResult> Create()
     {
         ViewBag.Customers = await _customerService.GetAllAsync();
@@ -62,25 +100,4 @@ public class ReservationController : Controller
 
         return RedirectToAction("Index", "Home");
     }
-    [HttpGet]
-    public async Task<IActionResult> Index(string? search)
-    {
-        var allReservations = await _reservationService.GetAllAsync();
-        if (allReservations == null)
-            return View(new List<ArticleReservation>());
-
-        var filtered = allReservations;
-
-        if (!string.IsNullOrWhiteSpace(search))
-        {
-            search = search.ToLower();
-            filtered = allReservations.Where(r =>
-                r.Customer.FirstName.ToLower().Contains(search) ||
-                r.Customer.LastName.ToLower().Contains(search)
-            );
-        }
-
-        return View(filtered.OrderByDescending(r => r.FromDateTime).ToList());
-    }
-
 }
