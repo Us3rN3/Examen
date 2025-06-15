@@ -76,8 +76,19 @@ namespace VivesRental.Repositories
         {
             try
             {
+                var existingOrder = await _context.Orders.AsNoTracking().FirstOrDefaultAsync(o => o.Id == entity.Id);
+                if (existingOrder == null)
+                {
+                    throw new InvalidOperationException("Kan de bestelling niet updaten omdat deze niet bestaat.");
+                }
+
                 _context.Orders.Update(entity);
                 await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                Console.WriteLine($"Concurrency error: {ex.Message}");
+                throw;
             }
             catch (Exception ex)
             {
@@ -85,5 +96,6 @@ namespace VivesRental.Repositories
                 throw;
             }
         }
+
     }
 }

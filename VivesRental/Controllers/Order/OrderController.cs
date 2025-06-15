@@ -34,7 +34,8 @@ public class OrderController : Controller
         return View(customers);
     }
 
-    public async Task<IActionResult> Create(Guid customerId)
+    [HttpGet]
+    public async Task<IActionResult> Create(Guid customerId, string? searchTerm, int page = 1, int pageSize = 10)
     {
         var customer = await _customerService.FindByIdAsync(customerId);
         if (customer == null)
@@ -43,42 +44,55 @@ public class OrderController : Controller
             return RedirectToAction(nameof(Start));
         }
 
-        var products = await _productService.GetAllAsync();
-        var articles = await _articleService.GetAllAsync();
+        var allProducts = await _productService.GetAllAsync();
+        var allArticles = await _articleService.GetAllAsync();
 
-        var availableArticles = articles
+        var availableArticles = allArticles
             .Where(a => a.Status == ArticleStatus.Beschikbaar)
             .ToList();
 
-        var model = products.Select(p =>
+        // Filter
+        var filteredProducts = allProducts
+            .Where(p => string.IsNullOrWhiteSpace(searchTerm) ||
+                        p.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+
+        // Mapping + Available count
+        var productModels = filteredProducts.Select(p =>
         {
             var count = availableArticles.Count(a => a.ProductId == p.Id);
-
             return new ProductWithAvailabilityViewModel
             {
                 ProductId = p.Id,
                 ProductName = p.Name,
                 AvailableCount = count
             };
-        })
-        .Where(p => p.AvailableCount > 0)
-        .ToList();
+        }).Where(p => p.AvailableCount > 0).ToList();
+
+        // Paging
+        var total = productModels.Count;
+        var totalPages = (int)Math.Ceiling(total / (double)pageSize);
+        var paginatedProducts = productModels
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToList();
+
+        var model = new SelectProductsViewModel
+        {
+            Products = paginatedProducts,
+            SearchTerm = searchTerm,
+            PageNumber = page,
+            TotalPages = totalPages,
+            CustomerId = customerId
+        };
 
         ViewBag.Customer = customer;
-        ViewBag.CustomerId = customerId;
-
         return View("SelectProducts", model);
     }
 
     [HttpPost]
     public async Task<IActionResult> Create(Guid customerId, Dictionary<Guid, int> quantities)
     {
-        if (quantities == null || !quantities.Any(q => q.Value > 0))
-        {
-            TempData["Error"] = "Selecteer minstens één product.";
-            return RedirectToAction(nameof(Create), new { customerId });
-        }
-
         var customer = await _customerService.FindByIdAsync(customerId);
         if (customer == null)
         {
@@ -86,61 +100,69 @@ public class OrderController : Controller
             return RedirectToAction(nameof(Start));
         }
 
+        // Maak nieuwe Order aan met alle verplichte velden
         var order = new Order
         {
             Id = Guid.NewGuid(),
             CustomerId = customerId,
-            CustomerEmail = customer.Email,
+            CreatedAt = DateTime.UtcNow,
             CustomerFirstName = customer.FirstName,
             CustomerLastName = customer.LastName,
-            CustomerPhoneNumber = customer.PhoneNumber,
-            CreatedAt = DateTime.Now
+            CustomerEmail = customer.Email,
+            CustomerPhoneNumber = customer.PhoneNumber ?? "Onbekend" // fallback als null
         };
 
         await _orderService.AddAsync(order);
-        var articles = await _articleService.GetAllAsync();
 
-        foreach (var entry in quantities.Where(q => q.Value > 0))
+        var allArticles = await _articleService.GetAllAsync();
+        var allProducts = await _productService.GetAllAsync();
+
+        foreach (var entry in quantities)
         {
             var productId = entry.Key;
-            var amount = entry.Value;
+            var quantity = entry.Value;
 
-            var availableArticles = articles
+            if (quantity <= 0)
+                continue;
+
+            var availableArticles = allArticles
                 .Where(a => a.ProductId == productId && a.Status == ArticleStatus.Beschikbaar)
-                .Take(amount)
+                .Take(quantity)
                 .ToList();
 
-            if (availableArticles.Count < amount)
+            var product = allProducts.FirstOrDefault(p => p.Id == productId);
+            if (product == null)
             {
-                TempData["Error"] = "Niet genoeg artikelen beschikbaar voor een van de producten.";
-                await _orderService.DeleteAsync(order);
-                return RedirectToAction(nameof(Create), new { customerId });
+                TempData["Error"] = "Product niet gevonden.";
+                return RedirectToAction(nameof(Start));
             }
-
-            var product = await _productService.FindByIdAsync(productId);
 
             foreach (var article in availableArticles)
             {
+                var now = DateTime.Now;
+
                 var orderLine = new OrderLine
                 {
                     Id = Guid.NewGuid(),
                     OrderId = order.Id,
                     ArticleId = article.Id,
+                    RentedAt = now,
+                    ExpiresAt = now.AddDays(7), // bijvoorbeeld 7 dagen huren
                     ProductName = product.Name,
-                    ProductDescription = product.Description,
-                    RentedAt = DateTime.Now,
-                    ExpiresAt = DateTime.Now.AddDays(7)
+                    ProductDescription = product.Description
                 };
 
-                article.Status = ArticleStatus.Verhuurd;
+                // Sla OrderLine op
+                await _orderLineService.AddAsync(orderLine); // zorg dat deze AddAsync heet i.p.v. UpdateAsync
 
-                await _orderLineService.AddAsync(orderLine);
+                // Update artikel status
+                article.Status = ArticleStatus.Verhuurd;
                 await _articleService.UpdateAsync(article);
             }
         }
 
         TempData["Success"] = "Order succesvol aangemaakt.";
-        return RedirectToAction("Overview");
+        return RedirectToAction(nameof(Overview));
     }
 
 

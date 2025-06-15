@@ -175,10 +175,17 @@ public class ReservationController : Controller
 
         foreach (var reservation in allReservations.ToList())
         {
-            if (!validArticleIds.Contains(reservation.ArticleId) || !validCustomerIds.Contains(reservation.CustomerId))
+            var article = allArticles.FirstOrDefault(a => a.Id == reservation.ArticleId);
+            var customerExists = validCustomerIds.Contains(reservation.CustomerId);
+
+            var articleIsValid = article != null &&
+                                 (article.Status == ArticleStatus.Verhuurd || article.Status == ArticleStatus.Gereserveerd);
+
+            if (!customerExists || !articleIsValid)
             {
                 await _reservationService.DeleteAsync(reservation);
             }
         }
     }
+
 }

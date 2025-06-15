@@ -1,13 +1,19 @@
-﻿@using VivesRental.Models.Product
-@model IEnumerable<ProductWithAvailabilityViewModel>
+﻿@model VivesRental.Models.Product.SelectProductsViewModel
 
 @{
     ViewData["Title"] = "Producten selecteren";
-    var orderId = ViewBag.OrderId;
-    var customerId = ViewBag.Customer?.Id;
+    var customerId = Model.CustomerId;
 }
 
 <h1>Selecteer Producten</h1>
+
+<form method="get" asp-action="Create">
+    <input type="hidden" name="customerId" value="@customerId" />
+    <div class="input-group mb-3">
+        <input type="text" name="searchTerm" class="form-control" value="@Model.SearchTerm" placeholder="Zoek op productnaam" />
+        <button type="submit" class="btn btn-primary">Zoek</button>
+    </div>
+</form>
 
 <form asp-action="Create" method="post">
     <input type="hidden" name="customerId" value="@customerId" />
@@ -21,7 +27,7 @@
             </tr>
         </thead>
         <tbody>
-            @foreach (var product in Model)
+            @foreach (var product in Model.Products)
             {
                 <tr>
                     <td>@product.ProductName</td>
@@ -42,3 +48,23 @@
     <button type="submit" class="btn btn-success">Order aanmaken</button>
     <a asp-action="Overview" class="btn btn-secondary">Terug naar overzicht</a>
 </form>
+
+@if (Model.TotalPages > 1)
+{
+    <nav>
+        <ul class="pagination">
+            @for (int i = 1; i <= Model.TotalPages; i++)
+            {
+                <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                    <a class="page-link"
+                       asp-action="Create"
+                       asp-route-customerId="@Model.CustomerId"
+                       asp-route-searchTerm="@Model.SearchTerm"
+                       asp-route-page="@i">
+                        @i
+                    </a>
+                </li>
+            }
+        </ul>
+    </nav>
+}
