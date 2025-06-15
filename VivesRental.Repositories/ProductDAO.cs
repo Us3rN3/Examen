@@ -54,7 +54,12 @@ namespace VivesRental.Repositories
         {
             try
             {
-                return await _context.Products.FindAsync(id);
+                return await _context.Products
+                    .Include(p => p.Articles)
+                        .ThenInclude(a => a.ArticleReservations)
+                    .Include(p => p.Articles)
+                        .ThenInclude(a => a.OrderLines)
+                    .FirstOrDefaultAsync(p => p.Id == id);
             }
             catch (Exception ex)
             {

@@ -23,10 +23,17 @@ public class ProductController : Controller
     [HttpPost]
     public async Task<IActionResult> Create(Product product)
     {
-        if (!ModelState.IsValid) return View(product);
+        if (!ModelState.IsValid)
+        {
+            TempData["Error"] = "Product aanmaken mislukt. Controleer alle velden.";
+            return View(product);
+        }
+
         await _service.AddAsync(product);
+        TempData["Success"] = "Product succesvol aangemaakt.";
         return RedirectToAction(nameof(Index));
     }
+
 
     public async Task<IActionResult> Edit(Guid id)
     {
@@ -37,8 +44,14 @@ public class ProductController : Controller
     [HttpPost]
     public async Task<IActionResult> Edit(Product product)
     {
-        if (!ModelState.IsValid) return View(product);
+        if (!ModelState.IsValid)
+        {
+            TempData["Error"] = "Product bijwerken mislukt. Controleer de velden.";
+            return View(product);
+        }
+
         await _service.UpdateAsync(product);
+        TempData["Success"] = "Product succesvol bijgewerkt.";
         return RedirectToAction(nameof(Index));
     }
 
@@ -52,10 +65,27 @@ public class ProductController : Controller
     public async Task<IActionResult> DeleteConfirmed(Guid id)
     {
         var product = await _service.FindByIdAsync(id);
-        if (product != null)
-            await _service.DeleteAsync(product);
+        if (product == null)
+        {
+            TempData["Error"] = "Product niet gevonden. Verwijderen mislukt.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        // Check op gelinkte artikelen met reservaties of orderlijnen
+        bool isInGebruik = product.Articles.Any(a =>
+            a.ArticleReservations.Any() || a.OrderLines.Any());
+
+        if (isInGebruik)
+        {
+            TempData["Error"] = "Product kan niet verwijderd worden omdat het gereserveerd of verhuurd is.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        await _service.DeleteAsync(product);
+        TempData["Success"] = "Product succesvol verwijderd.";
         return RedirectToAction(nameof(Index));
     }
+
 
     public async Task<IActionResult> Details(Guid id)
     {
