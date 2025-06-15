@@ -4,6 +4,22 @@
     ViewData["Title"] = "Reserveringsoverzicht";
 }
 
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Sluiten"></button>
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Sluiten"></button>
+    </div>
+}
+
 <h1 class="mb-4">Reserveringen</h1>
 
 <form method="get" class="mb-3">

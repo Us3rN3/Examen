@@ -27,8 +27,21 @@ public class ReservationController : Controller
         if (allReservations == null)
             return View(new ReservationIndexViewModel());
 
-        var filtered = allReservations;
+        // Verlopen reserveringen verwijderen en artikel beschikbaar zetten
+        var now = DateTime.Now;
+        foreach (var expired in allReservations.Where(r => r.UntilDateTime < now).ToList())
+        {
+            var article = await _articleService.FindByIdAsync(expired.ArticleId);
+            if (article != null)
+            {
+                article.Status = ArticleStatus.Beschikbaar;
+                await _articleService.UpdateAsync(article);
+            }
 
+            await _reservationService.DeleteAsync(expired);
+        }
+
+        var filtered = allReservations;
         if (!string.IsNullOrWhiteSpace(search))
         {
             search = search.ToLower();
@@ -61,43 +74,96 @@ public class ReservationController : Controller
     [HttpGet]
     public async Task<IActionResult> Create()
     {
-        ViewBag.Customers = await _customerService.GetAllAsync();
-
-        ViewBag.Articles = (await _articleService.GetAllAsync())
-            .Where(a => a.Status == 0 && a.Product != null)
-            .ToList();
-
-        return View();
+        await LoadDropdowns();
+        var model = new CreateReservationViewModel
+        {
+            FromDateTime = DateTime.Today,
+            UntilDateTime = DateTime.Today.AddDays(1),
+            CustomerId = null,
+            ProductId = null
+        };
+        return View(model);
     }
+
 
     [HttpPost]
     public async Task<IActionResult> Create(CreateReservationViewModel model)
     {
         if (!ModelState.IsValid)
         {
-            ViewBag.Customers = await _customerService.GetAllAsync();
-            ViewBag.Articles = await _articleService.GetAllAsync();
+            await LoadDropdowns();
+            return View(model);
+        }
+
+        // Check of CustomerId en ProductId ingevuld zijn
+        if (!model.CustomerId.HasValue || !model.ProductId.HasValue)
+        {
+            ModelState.AddModelError("", "Klant en product zijn verplicht.");
+            await LoadDropdowns();
+            return View(model);
+        }
+
+        // Check dat de startdatum niet in het verleden ligt
+        if (model.FromDateTime.Date < DateTime.Today)
+        {
+            TempData["Error"] = "Je kan geen reservering maken in het verleden.";
+            await LoadDropdowns();
+            return View(model);
+        }
+
+        // Check dat einddatum na startdatum ligt
+        if (model.UntilDateTime < model.FromDateTime)
+        {
+            ModelState.AddModelError("", "De einddatum moet na de startdatum liggen.");
+            await LoadDropdowns();
+            return View(model);
+        }
+
+        // Zoek beschikbaar artikel voor gekozen product
+        var article = (await _articleService.GetAllAsync())
+            .FirstOrDefault(a => a.ProductId == model.ProductId.Value && a.Status == ArticleStatus.Beschikbaar);
+
+        if (article == null)
+        {
+            TempData["Error"] = "Geen beschikbaar artikel voor dit product.";
+            await LoadDropdowns();
             return View(model);
         }
 
         var reservation = new ArticleReservation
         {
             Id = Guid.NewGuid(),
-            ArticleId = model.ArticleId,
-            CustomerId = model.CustomerId,
+            ArticleId = article.Id,
+            CustomerId = model.CustomerId.Value,
             FromDateTime = model.FromDateTime,
             UntilDateTime = model.UntilDateTime
         };
 
         await _reservationService.AddAsync(reservation);
 
-        var article = await _articleService.FindByIdAsync(model.ArticleId);
-        if (article != null)
-        {
-            article.Status = ArticleStatus.Gereserveerd;
-            await _articleService.UpdateAsync(article);
-        }
+        article.Status = ArticleStatus.Gereserveerd;
+        await _articleService.UpdateAsync(article);
 
-        return RedirectToAction("Index", "Home");
+        TempData["SuccessMessage"] = "Reservering succesvol aangemaakt.";
+        return RedirectToAction(nameof(Index));
+    }
+
+
+    private async Task LoadDropdowns()
+    {
+        ViewBag.Customers = await _customerService.GetAllAsync();
+
+        var articles = await _articleService.GetAllAsync();
+        var availableProductIds = articles
+            .Where(a => a.Status == ArticleStatus.Beschikbaar)
+            .Select(a => a.ProductId)
+            .Distinct()
+            .ToList();
+
+        ViewBag.Products = articles
+            .Where(a => availableProductIds.Contains(a.ProductId) && a.Product != null)
+            .Select(a => a.Product!)
+            .Distinct()
+            .ToList();
     }
 }
