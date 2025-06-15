@@ -54,7 +54,10 @@ namespace VivesRental.Repositories
         {
             try
             {
-                return await _context.Customers.FindAsync(id);
+                return await _context.Customers
+                    .Include(c => c.ArticleReservations)
+                    .Include(c => c.Orders)
+                    .FirstOrDefaultAsync(c => c.Id == id);
             }
             catch (Exception ex)
             {
@@ -62,6 +65,7 @@ namespace VivesRental.Repositories
                 return null;
             }
         }
+
 
         public async Task<IEnumerable<Customer>?> GetAllAsync()
         {

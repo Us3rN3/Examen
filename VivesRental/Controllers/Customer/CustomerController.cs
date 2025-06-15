@@ -77,17 +77,23 @@ public class CustomerController : Controller
     public async Task<IActionResult> DeleteConfirmed(Guid id)
     {
         var customer = await _service.FindByIdAsync(id);
-        if (customer != null)
-        {
-            await _service.DeleteAsync(customer);
-            TempData["Success"] = "Klant succesvol verwijderd.";
-        }
-        else
+        if (customer == null)
         {
             TempData["Error"] = "Klant niet gevonden. Verwijderen mislukt.";
+            return RedirectToAction(nameof(Index));
         }
 
+        // Controleer op gekoppelde reservaties of bestellingen
+        if (customer.ArticleReservations.Any() || customer.Orders.Any())
+        {
+            TempData["Error"] = "Klant kan niet verwijderd worden omdat er gekoppelde reservaties of bestellingen zijn.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        await _service.DeleteAsync(customer);
+        TempData["Success"] = "Klant succesvol verwijderd.";
         return RedirectToAction(nameof(Index));
     }
+
 
 }
