@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
-namespace VivesRental.Models
+namespace VivesRental.Models.Article
 {
     public class ArticleBulkCreateViewModel
     {

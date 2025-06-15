@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using VivesRental.Domains.EntitiesDB;
+using VivesRental.Models;
 using VivesRental.Services.Interfaces;
 
 public class CustomerController : Controller
@@ -11,20 +12,36 @@ public class CustomerController : Controller
         _service = service;
     }
 
-    public async Task<IActionResult> Index(string? search)
+    public async Task<IActionResult> Index(string? searchTerm, int page = 1, int pageSize = 10)
     {
-        var customers = await _service.GetAllAsync();
+        var allCustomers = await _service.GetAllAsync();
 
-        if (!string.IsNullOrWhiteSpace(search))
+        if (!string.IsNullOrEmpty(searchTerm))
         {
-            customers = customers.Where(c =>
-                c.FirstName.Contains(search, StringComparison.OrdinalIgnoreCase) ||
-                c.LastName.Contains(search, StringComparison.OrdinalIgnoreCase) ||
-                c.Email.Contains(search, StringComparison.OrdinalIgnoreCase)).ToList();
+            allCustomers = allCustomers
+                .Where(c => c.FirstName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
+                         || c.LastName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                         c.Email.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)).ToList();
         }
 
-        return View(customers);
+        var totalItems = allCustomers.Count();
+        var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+        var pagedCustomers = allCustomers
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToList();
+
+        var viewModel = new CustomerIndexViewModel
+        {
+            Customers = pagedCustomers,
+            SearchTerm = searchTerm,
+            CurrentPage = page,
+            TotalPages = totalPages
+        };
+
+        return View(viewModel);
     }
+
 
 
     public async Task<IActionResult> Details(Guid id)

@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using VivesRental.Data;
-using VivesRental.Models;
+using VivesRental.Models.Dashboard;
 using VivesRental.Domains.DataDB;
 
 public class HomeController : Controller

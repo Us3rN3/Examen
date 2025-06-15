@@ -1,10 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using VivesRental.Domains.EntitiesDB;
 using VivesRental.Domains.Enums;
-using VivesRental.Models;
+using VivesRental.Models.Product;
 using VivesRental.Services;
 using VivesRental.Services.Interfaces;
-
 
 public class OrderController : Controller
 {

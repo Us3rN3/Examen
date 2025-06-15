@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace VivesRental.Models;
+namespace VivesRental.Models.Reservation;
 
 public class CreateReservationViewModel
 {

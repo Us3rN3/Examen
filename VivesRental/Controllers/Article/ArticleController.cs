@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using VivesRental.Domains.EntitiesDB;
 using VivesRental.Domains.Enums;
 using VivesRental.Models;
+using VivesRental.Models.Article;
 using VivesRental.Services.Interfaces;
 
 public class ArticleController : Controller
@@ -16,7 +17,7 @@ public class ArticleController : Controller
         _productService = productService;
     }
 
-    public async Task<IActionResult> Index(string? searchTerm, int page = 1, int pageSize = 15)
+    public async Task<IActionResult> Index(string? searchTerm, int page = 1, int pageSize = 10)
     {
         var allArticles = await _service.GetAllAsync() ?? new List<Article>();
 

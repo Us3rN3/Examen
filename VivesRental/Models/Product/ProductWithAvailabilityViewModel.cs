@@ -1,4 +1,4 @@
-﻿namespace VivesRental.Models;
+﻿namespace VivesRental.Models.Product;
 
 public class ProductWithAvailabilityViewModel
 {

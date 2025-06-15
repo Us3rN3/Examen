@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using VivesRental.Domains.EntitiesDB;
 using VivesRental.Domains.Enums;
-using VivesRental.Models;
+using VivesRental.Models.Reservation;
 using VivesRental.Services.Interfaces;
 
 public class ReservationController : Controller
