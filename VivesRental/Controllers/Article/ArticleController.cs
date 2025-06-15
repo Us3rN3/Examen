@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using VivesRental.Models;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using VivesRental.Domains.EntitiesDB;
+using VivesRental.Domains.Enums;
+using VivesRental.Models;
 using VivesRental.Services.Interfaces;
 
 public class ArticleController : Controller
@@ -15,11 +16,37 @@ public class ArticleController : Controller
         _productService = productService;
     }
 
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(string? searchTerm, int page = 1, int pageSize = 15)
     {
-        var articles = await _service.GetAllAsync();
-        return View(articles);
+        var allArticles = await _service.GetAllAsync() ?? new List<Article>();
+
+        if (!string.IsNullOrEmpty(searchTerm))
+        {
+            allArticles = allArticles
+                .Where(a => a.Product != null &&
+                            a.Product.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+        }
+
+        var totalItems = allArticles.Count();
+        var totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+
+        var pagedArticles = allArticles
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToList();
+
+        var viewModel = new ArticleIndexViewModel
+        {
+            Articles = pagedArticles,
+            SearchTerm = searchTerm,
+            CurrentPage = page,
+            TotalPages = totalPages
+        };
+
+        return View(viewModel);
     }
+
 
     public async Task<IActionResult> Details(Guid id)
     {
@@ -64,45 +91,37 @@ public class ArticleController : Controller
             {
                 Id = Guid.NewGuid(),
                 ProductId = model.ProductId,
-                Status = 0 // Standaard op "Beschikbaar"
+                Status = ArticleStatus.Beschikbaar
             };
 
             await _service.AddAsync(article);
         }
 
+        TempData["Success"] = $"{model.Amount} artikel(en) succesvol aangemaakt.";
         return RedirectToAction(nameof(Index));
     }
 
     public async Task<IActionResult> Edit(Guid id)
     {
         var article = await _service.FindByIdAsync(id);
-
         if (article == null)
             return NotFound();
 
-        Console.WriteLine("Edit GET - ProductId: " + article.ProductId); // Check of ProductId bestaat
-
         return View(article);
     }
-
 
     [HttpPost]
     public async Task<IActionResult> Edit(Article article)
     {
         if (!ModelState.IsValid)
         {
-            foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
-            {
-                Console.WriteLine("Validatiefout: " + error.ErrorMessage);
-            }
-
             return View(article);
         }
 
         await _service.UpdateAsync(article);
+        TempData["Success"] = "Artikel succesvol bijgewerkt.";
         return RedirectToAction(nameof(Index));
     }
-
 
     public async Task<IActionResult> Delete(Guid id)
     {
@@ -114,9 +133,21 @@ public class ArticleController : Controller
     public async Task<IActionResult> DeleteConfirmed(Guid id)
     {
         var article = await _service.FindByIdAsync(id);
-        if (article != null)
-            await _service.DeleteAsync(article);
+        if (article == null)
+        {
+            TempData["Error"] = "Artikel niet gevonden.";
+            return RedirectToAction(nameof(Index));
+        }
 
+        // Validatie: niet verwijderen als verhuurd of gereserveerd
+        if (article.Status == ArticleStatus.Verhuurd || article.Status == ArticleStatus.Gereserveerd)
+        {
+            TempData["Error"] = "Artikel kan niet verwijderd worden omdat het verhuurd of gereserveerd is.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        await _service.DeleteAsync(article);
+        TempData["Success"] = "Artikel succesvol verwijderd.";
         return RedirectToAction(nameof(Index));
     }
 }
