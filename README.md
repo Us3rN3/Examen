@@ -7,7 +7,7 @@
 
 ---
 
-## 📋 Projectinformatie
+## Projectinformatie
 
 **Auteur**: Quinten Verbeke  
 **Klas**: 2CYB  
