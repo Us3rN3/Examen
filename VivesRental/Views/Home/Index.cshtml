@@ -15,33 +15,45 @@
 
 <h1 class="mb-4">VivesRental Dashboard</h1>
 
-<div class="row mb-4">
-    <div class="col-md-3">
-        <div class="card text-white bg-primary mb-3">
+<!-- Filter Dropdown -->
+<div class="mb-4 d-flex justify-content-end">
+    <select id="metricFilter" class="form-select w-auto">
+        <option value="all">Toon alles</option>
+        <option value="customers">Klanten</option>
+        <option value="products">Producten</option>
+        <option value="articles">Artikels</option>
+        <option value="reservations">Reservaties</option>
+    </select>
+</div>
+
+<!-- Overzichtscijfers -->
+<div class="row g-4" id="metricsContainer">
+    <div class="col-md-3 metric-card" data-metric="customers">
+        <div class="card text-white bg-primary h-100">
             <div class="card-body">
                 <h5 class="card-title">Klanten</h5>
                 <p class="card-text">@Model.TotalCustomers</p>
             </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card text-white bg-success mb-3">
+    <div class="col-md-3 metric-card" data-metric="products">
+        <div class="card text-white bg-success h-100">
             <div class="card-body">
                 <h5 class="card-title">Producten</h5>
                 <p class="card-text">@Model.TotalProducts</p>
             </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card text-white bg-warning mb-3">
+    <div class="col-md-3 metric-card" data-metric="articles">
+        <div class="card text-white bg-warning h-100">
             <div class="card-body">
                 <h5 class="card-title">Artikels</h5>
                 <p class="card-text">@Model.TotalArticles</p>
             </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card text-white bg-danger mb-3">
+    <div class="col-md-3 metric-card" data-metric="reservations">
+        <div class="card text-white bg-danger h-100">
             <div class="card-body">
                 <h5 class="card-title">Actieve Reservaties</h5>
                 <p class="card-text">@Model.ActiveReservations</p>
@@ -50,6 +62,9 @@
     </div>
 </div>
 
+<!-- Navigatie -->
+<hr class="my-5" />
+<h4>Beheer Navigatie</h4>
 <div class="row">
     <div class="col-md-4">
         <a href="/Product" class="btn btn-outline-primary w-100 mb-3">Productbeheer</a>
@@ -67,3 +82,20 @@
         <a href="/swagger" class="btn btn-outline-dark w-100 mb-3">Swagger Docs</a>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        document.getElementById('metricFilter').addEventListener('change', function () {
+            const selected = this.value;
+            const cards = document.querySelectorAll('.metric-card');
+
+            cards.forEach(card => {
+                if (selected === 'all' || card.dataset.metric === selected) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+    </script>
+}
