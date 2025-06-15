@@ -1,45 +1,94 @@
-﻿@{
+﻿@model VivesRental.Models.Order.OrderOverviewViewModel
+
+@{
     ViewData["Title"] = "Bestellingsoverzicht per klant";
-    var groupedOrders = ViewBag.GroupedOrders as IEnumerable<IGrouping<dynamic, VivesRental.Domains.EntitiesDB.Order>>;
+}
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Sluiten"></button>
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Sluiten"></button>
+    </div>
+}
+@if (TempData["Info"] != null)
+{
+    <div class="alert alert-info alert-dismissible fade show" role="alert">
+        @TempData["Info"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Sluiten"></button>
+    </div>
 }
 
 <h1>Overzicht van bestellingen per klant</h1>
 
-@if (TempData["Info"] != null)
-{
-    <div class="alert alert-info">@TempData["Info"]</div>
-}
+<form method="get" class="mb-3">
+    <input type="text" name="searchTerm" value="@Model.SearchTerm" placeholder="Zoek op naam of e-mail" class="form-control" style="max-width: 300px; display: inline-block;" />
+    <button type="submit" class="btn btn-primary ml-2">Zoeken</button>
+</form>
 
-<table class="table table-bordered">
-    <thead>
-        <tr>
-            <th>Klant</th>
-            <th>Email</th>
-            <th>Bestellingen</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var group in groupedOrders!)
-        {
+@if (!Model.GroupedOrders.Any())
+{
+    <p>Geen bestellingen gevonden.</p>
+}
+else
+{
+    <table class="table table-bordered">
+        <thead>
             <tr>
-                <td>@group.Key.CustomerFirstName @group.Key.CustomerLastName</td>
-                <td>@group.Key.CustomerEmail</td>
-                <td>
-                    <ul class="list-unstyled mb-0">
-                        @foreach (var order in group)
-                        {
-                            <li class="mb-2">
-                                <strong>@order.CreatedAt.ToShortDateString()</strong> – Order #@order.Id<br />
-                                <a asp-action="Details" asp-route-id="@order.Id" class="btn btn-primary btn-sm me-1">Details</a>
-                                <form asp-action="ReturnAll" method="post" style="display:inline;">
-                                    <input type="hidden" name="orderId" value="@order.Id" />
-                                    <button type="submit" class="btn btn-warning btn-sm">Alles terugbrengen</button>
-                                </form>
-                            </li>
-                        }
-                    </ul>
-                </td>
+                <th>Klant</th>
+                <th>Email</th>
+                <th>Bestellingen</th>
             </tr>
-        }
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            @foreach (var group in Model.GroupedOrders)
+            {
+                <tr>
+                    <td>@group.Key.CustomerFirstName @group.Key.CustomerLastName</td>
+                    <td>@group.Key.CustomerEmail</td>
+                    <td>
+                        <ul class="list-unstyled mb-0">
+                            @foreach (var order in group)
+                            {
+                                <li class="mb-2">
+                                    <strong>@order.CreatedAt.ToShortDateString()</strong> – Order #@order.Id<br />
+                                    <a asp-action="Details" asp-route-id="@order.Id" class="btn btn-primary btn-sm me-1">Details</a>
+                                    <form asp-action="ReturnAll" method="post" style="display:inline;">
+                                        <input type="hidden" name="orderId" value="@order.Id" />
+                                        <button type="submit" class="btn btn-warning btn-sm">Alles terugbrengen</button>
+                                    </form>
+                                </li>
+                            }
+                        </ul>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <nav>
+        <ul class="pagination">
+            <li class="page-item @(Model.PageNumber == 1 ? "disabled" : "")">
+                <a class="page-link" asp-action="Overview" asp-route-pageNumber="@(Model.PageNumber - 1)" asp-route-searchTerm="@Model.SearchTerm">Vorige</a>
+            </li>
+
+            @for (int i = 1; i <= Model.TotalPages; i++)
+            {
+                <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                    <a class="page-link" asp-action="Overview" asp-route-pageNumber="@i" asp-route-searchTerm="@Model.SearchTerm">@i</a>
+                </li>
+            }
+
+            <li class="page-item @(Model.PageNumber == Model.TotalPages ? "disabled" : "")">
+                <a class="page-link" asp-action="Overview" asp-route-pageNumber="@(Model.PageNumber + 1)" asp-route-searchTerm="@Model.SearchTerm">Volgende</a>
+            </li>
+        </ul>
+    </nav>
+}

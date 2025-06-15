@@ -148,22 +148,25 @@ public class ReservationController : Controller
         return RedirectToAction(nameof(Index));
     }
 
-
     private async Task LoadDropdowns()
     {
         ViewBag.Customers = await _customerService.GetAllAsync();
 
         var articles = await _articleService.GetAllAsync();
+
+        // Pak enkel de productIds van artikelen die beschikbaar zijn
         var availableProductIds = articles
-            .Where(a => a.Status == ArticleStatus.Beschikbaar)
+            .Where(a => a.Status == ArticleStatus.Beschikbaar && a.Product != null)
             .Select(a => a.ProductId)
             .Distinct()
             .ToList();
 
+        // Pak de producten die horen bij de beschikbare artikelen
         ViewBag.Products = articles
             .Where(a => availableProductIds.Contains(a.ProductId) && a.Product != null)
             .Select(a => a.Product!)
             .Distinct()
             .ToList();
     }
+
 }

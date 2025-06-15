@@ -5,13 +5,19 @@
     ViewData["Title"] = "Dashboard";
 }
 
-@if (TempData["SuccessMessage"] != null)
+@if (TempData["Success"] != null)
 {
-    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Sluiten"></button>
+    </div>
 }
-@if (TempData["ErrorMessage"] != null)
+@if (TempData["Error"] != null)
 {
-    <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Sluiten"></button>
+    </div>
 }
 
 <h1 class="mb-4">VivesRental Dashboard</h1>
@@ -24,12 +30,13 @@
         <option value="products">Producten</option>
         <option value="articles">Artikels</option>
         <option value="reservations">Reservaties</option>
+        <option value="orders">>Orders</option>
     </select>
 </div>
 
 <!-- Overzichtscijfers -->
 <div class="row g-4" id="metricsContainer">
-    <div class="col-md-3 metric-card" data-metric="customers">
+    <div class="col-md-2 metric-card" data-metric="customers">
         <div class="card text-white bg-primary h-100">
             <div class="card-body">
                 <h5 class="card-title">Klanten</h5>
@@ -37,7 +44,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-3 metric-card" data-metric="products">
+    <div class="col-md-2 metric-card" data-metric="products">
         <div class="card text-white bg-success h-100">
             <div class="card-body">
                 <h5 class="card-title">Producten</h5>
@@ -45,7 +52,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-3 metric-card" data-metric="articles">
+    <div class="col-md-2 metric-card" data-metric="articles">
         <div class="card text-white bg-warning h-100">
             <div class="card-body">
                 <h5 class="card-title">Artikels</h5>
@@ -53,11 +60,19 @@
             </div>
         </div>
     </div>
-    <div class="col-md-3 metric-card" data-metric="reservations">
+    <div class="col-md-2 metric-card" data-metric="reservations">
         <div class="card text-white bg-danger h-100">
             <div class="card-body">
                 <h5 class="card-title">Actieve Reservaties</h5>
                 <p class="card-text">@Model.ActiveReservations</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2 metric-card" data-metric="orders">
+        <div class="card text-white bg-info h-100">
+            <div class="card-body">
+                <h5 class="card-title">Totaal Orders</h5>
+                <p class="card-text">@Model.ActiveOrders</p>
             </div>
         </div>
     </div>

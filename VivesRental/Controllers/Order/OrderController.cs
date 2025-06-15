@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using VivesRental.Domains.EntitiesDB;
 using VivesRental.Domains.Enums;
+using VivesRental.Models.Order;
 using VivesRental.Models.Product;
 using VivesRental.Services;
 using VivesRental.Services.Interfaces;
@@ -12,12 +13,13 @@ public class OrderController : Controller
     private readonly IService<Product> _productService;
     private readonly IService<Article> _articleService;
     private readonly IService<OrderLine> _orderLineService;
+
     public OrderController(
-    IService<Order> orderService,
-    IService<Customer> customerService,
-    IService<Product> productService,
-    IService<Article> articleService,
-    IService<OrderLine> orderLineService)
+        IService<Order> orderService,
+        IService<Customer> customerService,
+        IService<Product> productService,
+        IService<Article> articleService,
+        IService<OrderLine> orderLineService)
     {
         _orderService = orderService;
         _customerService = customerService;
@@ -26,51 +28,28 @@ public class OrderController : Controller
         _orderLineService = orderLineService;
     }
 
-
-    // Stap 1: Klant selecteren
     public async Task<IActionResult> Start()
     {
         var customers = await _customerService.GetAllAsync();
         return View(customers);
     }
 
-    // Stap 2: Order aanmaken voor geselecteerde klant
     public async Task<IActionResult> Create(Guid customerId)
     {
         var customer = await _customerService.FindByIdAsync(customerId);
         if (customer == null)
-            return NotFound();
-
-        var order = new Order
         {
-            Id = Guid.NewGuid(),
-            CustomerId = customerId,
-            CustomerEmail = customer.Email,
-            CustomerFirstName = customer.FirstName, 
-            CustomerLastName = customer.LastName,
-            CustomerPhoneNumber = customer.PhoneNumber,
-            CreatedAt = DateTime.Now
-        };
-
-        await _orderService.AddAsync(order);
-
-        return RedirectToAction("SelectProducts", new { orderId = order.Id });
-    }
-    public async Task<IActionResult> SelectProducts(Guid orderId)
-    {
-        var order = await _orderService.FindByIdAsync(orderId);
-        if (order == null)
-            return NotFound();
+            TempData["Error"] = "Klant niet gevonden.";
+            return RedirectToAction(nameof(Start));
+        }
 
         var products = await _productService.GetAllAsync();
         var articles = await _articleService.GetAllAsync();
 
-        // Filter op beschikbare artikelen
         var availableArticles = articles
-            .Where(a => a.Status == 0) // 0 = Beschikbaar
+            .Where(a => a.Status == ArticleStatus.Beschikbaar)
             .ToList();
 
-        // Bouw de lijst op per product
         var model = products.Select(p =>
         {
             var count = availableArticles.Count(a => a.ProductId == p.Id);
@@ -82,123 +61,143 @@ public class OrderController : Controller
                 AvailableCount = count
             };
         })
-        .Where(p => p.AvailableCount > 0) // Alleen tonen als er iets beschikbaar is
+        .Where(p => p.AvailableCount > 0)
         .ToList();
 
-        ViewBag.OrderId = orderId;
-        return View(model);
+        ViewBag.Customer = customer;
+        ViewBag.CustomerId = customerId;
+
+        return View("SelectProducts", model);
     }
 
     [HttpPost]
-    public async Task<IActionResult> AddToOrder(Guid orderId, Guid productId)
+    public async Task<IActionResult> Create(Guid customerId, Dictionary<Guid, int> quantities)
     {
-        // Zoek eerste beschikbare artikel
-        var articles = await _articleService.GetAllAsync();
-        var availableArticle = articles
-            .FirstOrDefault(a => a.ProductId == productId && a.Status == 0);
-
-        if (availableArticle == null)
+        if (quantities == null || !quantities.Any(q => q.Value > 0))
         {
-            TempData["Error"] = "Geen beschikbaar artikel meer voor dit product.";
-            return RedirectToAction("SelectProducts", new { orderId });
+            TempData["Error"] = "Selecteer minstens één product.";
+            return RedirectToAction(nameof(Create), new { customerId });
         }
 
-        // Laad het product op via artikel.ProductId
-        var product = await _productService.FindByIdAsync(productId);
-        if (product == null)
+        var customer = await _customerService.FindByIdAsync(customerId);
+        if (customer == null)
         {
-            TempData["Error"] = "Product niet gevonden.";
-            return RedirectToAction("SelectProducts", new { orderId });
+            TempData["Error"] = "Klant niet gevonden.";
+            return RedirectToAction(nameof(Start));
         }
 
-        var now = DateTime.Now;
-
-        // Maak nieuwe OrderLine aan
-        var orderLine = new OrderLine
+        var order = new Order
         {
             Id = Guid.NewGuid(),
-            OrderId = orderId,
-            ArticleId = availableArticle.Id,
-            ProductName = product.Name,
-            ProductDescription = product.Description,
-            RentedAt = now,
-            ExpiresAt = now.AddDays(7) // ← stel zelf huurtermijn in (bijv. 7 dagen)
+            CustomerId = customerId,
+            CustomerEmail = customer.Email,
+            CustomerFirstName = customer.FirstName,
+            CustomerLastName = customer.LastName,
+            CustomerPhoneNumber = customer.PhoneNumber,
+            CreatedAt = DateTime.Now
         };
 
-        // Artikelstatus wijzigen naar "verhuurd"
-        availableArticle.Status = ArticleStatus.Verhuurd;
+        await _orderService.AddAsync(order);
+        var articles = await _articleService.GetAllAsync();
 
-        // Opslaan
-        await _orderLineService.AddAsync(orderLine);
-        await _articleService.UpdateAsync(availableArticle);
-
-        return RedirectToAction("SelectProducts", new { orderId });
-    }
-
-    [HttpGet]
-    public IActionResult SearchReturn()
-    {
-        return View("SearchReturn");
-    }
-    public async Task<IActionResult> Return(Guid orderId)
-    {
-        var order = await _orderService.FindByIdAsync(orderId);
-        if (order == null)
-            return NotFound();
-
-        var orderLines = await _orderLineService.GetAllAsync();
-
-        // Filter alle lijnen van dit order
-        var lines = orderLines
-            .Where(ol => ol.OrderId == orderId)
-            .ToList();
-
-        ViewBag.Order = order;
-        return View(lines);
-    }
-
-    [HttpPost]
-    public async Task<IActionResult> ReturnArticle(Guid orderLineId, Guid orderId)
-    {
-        var orderLine = await _orderLineService.FindByIdAsync(orderLineId);
-        if (orderLine == null)
-            return NotFound();
-
-        if (orderLine.ReturnedAt.HasValue)
+        foreach (var entry in quantities.Where(q => q.Value > 0))
         {
-            // Artikel was al teruggebracht
-            return RedirectToAction("Return", new { orderId });
-        }
+            var productId = entry.Key;
+            var amount = entry.Value;
 
-        // Zet ReturnedAt in
-        orderLine.ReturnedAt = DateTime.Now;
+            var availableArticles = articles
+                .Where(a => a.ProductId == productId && a.Status == ArticleStatus.Beschikbaar)
+                .Take(amount)
+                .ToList();
 
-        await _orderLineService.UpdateAsync(orderLine);
-
-        // Haal het artikel op en maak beschikbaar
-        if (orderLine.ArticleId.HasValue)
-        {
-            var article = await _articleService.FindByIdAsync(orderLine.ArticleId.Value);
-            if (article != null)
+            if (availableArticles.Count < amount)
             {
-                article.Status = 0; // Beschikbaar
+                TempData["Error"] = "Niet genoeg artikelen beschikbaar voor een van de producten.";
+                await _orderService.DeleteAsync(order);
+                return RedirectToAction(nameof(Create), new { customerId });
+            }
+
+            var product = await _productService.FindByIdAsync(productId);
+
+            foreach (var article in availableArticles)
+            {
+                var orderLine = new OrderLine
+                {
+                    Id = Guid.NewGuid(),
+                    OrderId = order.Id,
+                    ArticleId = article.Id,
+                    ProductName = product.Name,
+                    ProductDescription = product.Description,
+                    RentedAt = DateTime.Now,
+                    ExpiresAt = DateTime.Now.AddDays(7)
+                };
+
+                article.Status = ArticleStatus.Verhuurd;
+
+                await _orderLineService.AddAsync(orderLine);
                 await _articleService.UpdateAsync(article);
             }
         }
 
-        return RedirectToAction("Return", new { orderId });
+        TempData["Success"] = "Order succesvol aangemaakt.";
+        return RedirectToAction("Overview");
     }
 
-    public async Task<IActionResult> Overview()
-    {
-        var orders = await _orderService.GetAllAsync();
 
-        var grouped = orders
-            .GroupBy(o => new { o.CustomerId, o.CustomerFirstName, o.CustomerLastName, o.CustomerEmail })
+    public async Task<IActionResult> Overview(string searchTerm, int pageNumber = 1, int pageSize = 10)
+    {
+        await CleanupEmptyOrders();
+
+        var allOrders = await _orderService.GetAllAsync();
+
+        // Filter orders waarbij niet alle artikelen zijn teruggebracht
+        var allOrderLines = await _orderLineService.GetAllAsync();
+        allOrders = allOrders.Where(order =>
+            allOrderLines.Any(ol => ol.OrderId == order.Id && !ol.ReturnedAt.HasValue)
+        ).ToList();
+
+        // Filteren op zoekterm als die is ingevuld
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            var lowerTerm = searchTerm.Trim().ToLower();
+            allOrders = allOrders.Where(o =>
+                ($"{o.CustomerFirstName} {o.CustomerLastName}".ToLower().Contains(lowerTerm)) ||
+                (o.CustomerEmail?.ToLower().Contains(lowerTerm) ?? false)
+            ).ToList();
+        }
+
+        // Groeperen per klant
+        var grouped = allOrders
+            .GroupBy(o => new CustomerGroupKey
+            {
+                CustomerId = (Guid)o.CustomerId,
+                CustomerFirstName = o.CustomerFirstName,
+                CustomerLastName = o.CustomerLastName,
+                CustomerEmail = o.CustomerEmail
+            })
+            .OrderBy(g => g.Key.CustomerLastName)
+            .ThenBy(g => g.Key.CustomerFirstName)
             .ToList();
 
-        ViewBag.GroupedOrders = grouped;
-        return View();
+
+        // Paging
+        int totalGroups = grouped.Count;
+        int totalPages = (int)Math.Ceiling(totalGroups / (double)pageSize);
+
+        grouped = grouped
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToList();
+
+        var model = new OrderOverviewViewModel
+        {
+            GroupedOrders = grouped,
+            PageNumber = pageNumber,
+            TotalPages = totalPages,
+            SearchTerm = searchTerm
+        };
+
+        return View(model);
     }
 
     public async Task<IActionResult> Details(Guid id)
@@ -220,6 +219,56 @@ public class OrderController : Controller
         return View(lines);
     }
 
+    public IActionResult SearchReturn()
+    {
+        return View("SearchReturn");
+    }
+
+    public async Task<IActionResult> Return(Guid orderId)
+    {
+        var order = await _orderService.FindByIdAsync(orderId);
+        if (order == null)
+            return NotFound();
+
+        var orderLines = await _orderLineService.GetAllAsync();
+        var lines = orderLines
+            .Where(ol => ol.OrderId == orderId)
+            .ToList();
+
+        ViewBag.Order = order;
+        return View(lines);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> ReturnArticle(Guid orderLineId, Guid orderId)
+    {
+        var orderLine = await _orderLineService.FindByIdAsync(orderLineId);
+        if (orderLine == null)
+            return NotFound();
+
+        if (orderLine.ReturnedAt.HasValue)
+        {
+            TempData["Info"] = "Dit artikel werd al teruggebracht.";
+            return RedirectToAction("Return", new { orderId });
+        }
+
+        orderLine.ReturnedAt = DateTime.Now;
+        await _orderLineService.UpdateAsync(orderLine);
+
+        if (orderLine.ArticleId.HasValue)
+        {
+            var article = await _articleService.FindByIdAsync(orderLine.ArticleId.Value);
+            if (article != null)
+            {
+                article.Status = ArticleStatus.Beschikbaar;
+                await _articleService.UpdateAsync(article);
+            }
+        }
+
+        TempData["Success"] = "Artikel succesvol teruggebracht.";
+        return RedirectToAction("Return", new { orderId });
+    }
+
     [HttpPost]
     public async Task<IActionResult> ReturnAll(Guid orderId)
     {
@@ -236,13 +285,53 @@ public class OrderController : Controller
                 var article = await _articleService.FindByIdAsync(line.ArticleId.Value);
                 if (article != null)
                 {
-                    article.Status = 0; // Beschikbaar
+                    article.Status = ArticleStatus.Beschikbaar;
                     await _articleService.UpdateAsync(article);
                 }
             }
         }
 
+        TempData["Success"] = "Alle artikelen zijn teruggebracht.";
         return RedirectToAction("Overview");
     }
+
+    public async Task CleanupEmptyOrders()
+    {
+        var orders = await _orderService.GetAllAsync();
+        var orderLines = await _orderLineService.GetAllAsync();
+
+        foreach (var order in orders)
+        {
+            bool hasLines = orderLines.Any(ol => ol.OrderId == order.Id);
+            if (!hasLines)
+            {
+                await _orderService.DeleteAsync(order);
+            }
+        }
+    }
+
+    public async Task CleanupCompletedOrders()
+    {
+        var orders = await _orderService.GetAllAsync();
+        var orderLines = await _orderLineService.GetAllAsync();
+
+        foreach (var order in orders)
+        {
+            var lines = orderLines.Where(ol => ol.OrderId == order.Id).ToList();
+
+            if (lines.Any() && lines.All(l => l.ReturnedAt.HasValue))
+            {
+                // Eerst alle orderlines verwijderen
+                foreach (var line in lines)
+                {
+                    await _orderLineService.DeleteAsync(line);
+                }
+
+                // Dan order verwijderen
+                await _orderService.DeleteAsync(order);
+            }
+        }
+    }
+
 
 }

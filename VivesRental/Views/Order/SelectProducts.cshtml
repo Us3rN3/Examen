@@ -4,34 +4,41 @@
 @{
     ViewData["Title"] = "Producten selecteren";
     var orderId = ViewBag.OrderId;
+    var customerId = ViewBag.Customer?.Id;
 }
 
 <h1>Selecteer Producten</h1>
 
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>Product</th>
-            <th>Beschikbaar</th>
-            <th>Actie</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var product in Model)
-        {
-            <tr>
-                <td>@product.ProductName</td>
-                <td>@product.AvailableCount</td>
-                <td>
-                    <form asp-action="AddToOrder" method="post" class="d-inline">
-                        <input type="hidden" name="orderId" value="@orderId" />
-                        <input type="hidden" name="productId" value="@product.ProductId" />
-                        <button type="submit" class="btn btn-primary btn-sm">Voeg toe aan order</button>
-                    </form>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+<form asp-action="Create" method="post">
+    <input type="hidden" name="customerId" value="@customerId" />
 
-<a asp-action="Overview" class="btn btn-secondary mt-3">Terug naar overzicht</a>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Product</th>
+                <th>Beschikbaar</th>
+                <th>Aantal</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var product in Model)
+            {
+                <tr>
+                    <td>@product.ProductName</td>
+                    <td>@product.AvailableCount</td>
+                    <td>
+                        <input type="number"
+                               name="quantities[@product.ProductId]"
+                               value="0"
+                               min="0"
+                               max="@product.AvailableCount"
+                               class="form-control form-control-sm" />
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <button type="submit" class="btn btn-success">Order aanmaken</button>
+    <a asp-action="Overview" class="btn btn-secondary">Terug naar overzicht</a>
+</form>
