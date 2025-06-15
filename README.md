@@ -177,7 +177,7 @@ Content-Type: application/json
 
 {
   "username": "admin",
-  "password": "password123"
+  "password": "admin123"
 }
 ```
 *Volledige API documentatie beschikbaar via Swagger UI op `/swagger`*
