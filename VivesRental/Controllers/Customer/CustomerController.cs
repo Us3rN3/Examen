@@ -11,11 +11,21 @@ public class CustomerController : Controller
         _service = service;
     }
 
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(string? search)
     {
         var customers = await _service.GetAllAsync();
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            customers = customers.Where(c =>
+                c.FirstName.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                c.LastName.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                c.Email.Contains(search, StringComparison.OrdinalIgnoreCase)).ToList();
+        }
+
         return View(customers);
     }
+
 
     public async Task<IActionResult> Details(Guid id)
     {
@@ -32,20 +42,12 @@ public class CustomerController : Controller
     public async Task<IActionResult> Create(Customer customer)
     {
         if (!ModelState.IsValid)
-        {
-            foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
-            {
-                Console.WriteLine("Validatiefout: " + error.ErrorMessage);
-            }
-
             return View(customer);
-        }
-
 
         await _service.AddAsync(customer);
+        TempData["Success"] = "Klant succesvol toegevoegd.";
         return RedirectToAction(nameof(Index));
     }
-
 
     public async Task<IActionResult> Edit(Guid id)
     {
@@ -56,11 +58,14 @@ public class CustomerController : Controller
     [HttpPost]
     public async Task<IActionResult> Edit(Customer customer)
     {
-        if (!ModelState.IsValid) return View(customer);
+        if (!ModelState.IsValid)
+            return View(customer);
 
         await _service.UpdateAsync(customer);
+        TempData["Success"] = "Klant succesvol bijgewerkt.";
         return RedirectToAction(nameof(Index));
     }
+
 
     public async Task<IActionResult> Delete(Guid id)
     {
@@ -73,8 +78,16 @@ public class CustomerController : Controller
     {
         var customer = await _service.FindByIdAsync(id);
         if (customer != null)
+        {
             await _service.DeleteAsync(customer);
+            TempData["Success"] = "Klant succesvol verwijderd.";
+        }
+        else
+        {
+            TempData["Error"] = "Klant niet gevonden. Verwijderen mislukt.";
+        }
 
         return RedirectToAction(nameof(Index));
     }
+
 }
